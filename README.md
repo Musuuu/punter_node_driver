@@ -8,3 +8,6 @@ without phisical access to the node.
 
 This could be critical for nodes in remote location or exposed to harsh conditions as
 the mantainance could be done from far away.
+
+-----------
+To run the test module you need to install the 'wiringpi' library from https://github.com/WiringPi/WiringPi-Python
