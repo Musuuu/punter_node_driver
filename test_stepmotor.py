@@ -27,29 +27,6 @@ def track_calls(func):
     return wrapper
 
 
-# def stub_digitalWrite(pin=None, value=None):
-#     """Change the value of a digital pin ('0' = OFF or '1' = ON)"""
-#     # Assure that Stepper's attribute *inp* exists
-#     # try:
-#     #     Stepper.inp
-#     # except AttributeError:
-#     #     Stepper.inp = [None, None, None, None]
-#     #
-#     # if int(value) in (0, 1):
-#     #     Stepper.inp[pin] = value
-#     #     return Stepper.inp
-#     # else:
-#     #     raise ValueError('You tried to set the ', pin, ' pin with an incorrect value. Only *0* and *1* are accepted')
-#
-#     if pin in test_engine.inp:
-#         if int(value) in (0, 1):
-#             return True
-#         else:
-#             raise ValueError('You tried to set the ', pin, ' pin with an incorrect value. Only *0* and *1* are accepted')
-#     else:
-#         raise ValueError('The pin that you\'re trying to set is not in use')
-
-
 class PrimesTestCase (unittest.TestCase):
     """Tests for the stepper class"""
 
@@ -61,6 +38,7 @@ class PrimesTestCase (unittest.TestCase):
     # @patch('wiringpi.pinMode', pinMode)
     def setUp(self):
         self.test_engine = Stepper(0, 1, 2, 3)
+        self.test_engine.acceleration_factor = 2
 
     @track_calls
     def stub_digitalWrite(pin, value):
@@ -94,53 +72,107 @@ class PrimesTestCase (unittest.TestCase):
     def test_initial_speed(self):
         self.assertEqual(self.test_engine.actspeed, 0)
 
-    # # # # # # # # # # # # # # # # # # # # # # #
-    # # #   Test the methods of the class   # # #
-    # # # # # # # # # # # # # # # # # # # # # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # #   Test the *set_pin* method of the class    # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    def test_set_pins1(self):
+    def test_check_pins1(self):
         """Tests if the pins are selected correctly"""
         self.assertEqual([0, 1, 2, 3], self.test_engine.inp)
 
-    def test_set_pins2(self):
+    def test_check_pins2(self):
         """Tests if the correct exception is raised when the user tries to use the same pin more times"""
-        with self.assertRaises(ConfigurationError) as context:
-            self.test_engine.inp = self.test_engine.set_pins(1, 1, 1, 1)
-        self.assertNotEqual("ConfigurationError", context.exception)    # Ok if there is a configuration error
+        with self.assertRaises(ConfigurationError):
+            self.test_engine.inp = self.test_engine.check_pins(1, 1, 1, 1)
 
-    def test_set_pins3(self):
+    def test_check_pins3(self):
         """Tests if the correct exception is raised when the user gives an empty variable as pin number"""
-        with self.assertRaises(NameError) as context:
-            self.test_engine.inp = self.test_engine.set_pins(0, 1, 2, a)
-        self.assertNotEqual("NameError", context.exception)
+        with self.assertRaises(NameError):
+            self.test_engine.inp = self.test_engine.check_pins(0, 1, 2, a)
 
-    def test_set_pins4(self):
+    def test_check_pins4(self):
         """Tests if the correct exception is raised when the user doesn't give an integer as pin number"""
-        with self.assertRaises(TypeError) as context:
-            self.test_engine = self.test_engine.set_pins(0, 1, 2, [1, 2])
-        self.assertNotEqual("TypeError", context.exception)
+        with self.assertRaises(TypeError):
+            self.test_engine = self.test_engine.check_pins(0, 1, 2, [1, 2])
 
-        with self.assertRaises(TypeError) as context:
-            self.test_engine = self.test_engine.set_pins(0, 1, 2, {1:"hello", 2:"world"})
-        self.assertNotEqual("TypeError", context.exception)
+        with self.assertRaises(TypeError):
+            self.test_engine = self.test_engine.check_pins(0, 1, 2, {1: "hello", 2: "world"})
 
-    def test_set_pins5(self):
+    def test_check_pins5(self):
         """Tests if the correct exception is raised when the user give an char as pin number"""
-        with self.assertRaises(ValueError) as context:
-            self.test_engine = self.test_engine.set_pins(0, 1, 2, "hello")
-        self.assertNotEqual("ValueError", context.exception)
+        with self.assertRaises(ValueError):
+            self.test_engine = self.test_engine.check_pins(0, 1, 2, "hello")
 
-    def test_set_pins6(self):
+    def test_check_pins6(self):
         """Tests if the correct exception is raised when the user give a negative pin number"""
-        with self.assertRaises(ValueError) as context:
-            self.test_engine = self.test_engine.set_pins(0, 1, 2, -5)
-        self.assertNotEqual("ValueError", context.exception)
+        with self.assertRaises(ValueError):
+            self.test_engine = self.test_engine.check_pins(0, 1, 2, -5)
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # #   Test the *stop* method of the class   # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     @patch('wiringpi.digitalWrite', stub_digitalWrite)
     def test_stop(self):
         """Tests if the *stop* method works as expected"""
         self.test_engine.stop()
         self.assertTrue(self.stub_digitalWrite.has_been_called)
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # #   Test the *move* method of the class   # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def test_correct_move(self):
+        """Test the correct behavior with correct parameters"""
+        self.test_engine.move(1000, 250, 1)
+        # self.test_engine.move(250, rel=100, dir=-1)
+
+    def test_move_with_illogical_values1(self):
+        """Test what happen while trying to set extreme high speed"""
+        self.test_engine.move(1000, 10000000, 1)
+
+    def test_move_with_illogical_values2(self):
+        """Test what happen with speed equal to 0"""
+        self.test_engine.move(20, 0, 1)
+
+    def test_move_with_illogical_values3(self):
+        """Test what happen with negative speed, step number and direction"""
+        self.test_engine.move(-100, -250, -1)
+
+    def test_move_with_wrong_data_types1(self):
+        """Test what happen with unusual data types"""
+        self.test_engine.move(100.123, 100.123, 4.123)
+
+    @patch('wiringpi.digitalWrite', stub_digitalWrite)
+    def test_move_with_wrong_data_types2(self):
+        """Test what happen when wrong data types are passed to the method: lists"""
+        self.test_engine.move([10, 10, 10], 250, 1)
+        self.test_engine.move(100, [10, 10, 10], 1)
+        self.test_engine.move(100, 250, [10, 10, 10])
+
+    def test_move_with_wrong_data_types3(self):
+        """Test what happen when wrong data types are passed to the method: tuples"""
+        self.test_engine.move((10, 10, 10), 250, 1)
+        self.test_engine.move(100, (10, 10, 10), 1)
+        self.test_engine.move(100, 250, (10, 10, 10))
+
+    def test_move_with_wrong_data_types4(self):
+        """Test what happen when wrong data types are passed to the method: dictionaries"""
+        self.test_engine.move({1: 10, 2: "foo"}, 250, 1)
+        self.test_engine.move(100, {1: 10, 2: "foo"}, 1)
+        self.test_engine.move(100, 250, {1: 10, 2: "foo"})
+
+    def test_move_with_wrong_data_types5(self):
+        """Test what happen when wrong data types are passed to the method: chars"""
+        self.test_engine.move("foo", 250, 1)
+        self.test_engine.move(100, "foo", 1)
+        self.test_engine.move(100, 250, "foo")
+
+    def test_move_with_empty_data(self):
+        """Test what happen when some data isn't specified"""
+        self.test_engine.move(None, 250, 1)
+        self.test_engine.move(100, None, 1)
+        self.test_engine.move(100, 250, None)
 
 
 if __name__ == '__main__':
