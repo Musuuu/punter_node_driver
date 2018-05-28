@@ -137,6 +137,10 @@ class PrimesTestCase (unittest.TestCase):
         self.test_engine.move(20, 0, 1)
 
     def test_move_with_illogical_values3(self):
+        """Test what happen with a very low speed"""
+        self.test_engine.move(20, 1, 1)
+
+    def test_move_with_illogical_values4(self):
         """Test what happen with negative speed, step number and direction"""
         self.test_engine.move(-100, -250, -1)
 
