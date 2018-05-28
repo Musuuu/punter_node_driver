@@ -101,7 +101,7 @@ class PrimesTestCase (unittest.TestCase):
 
     def test_check_pins5(self):
         """Tests if the correct exception is raised when the user give an char as pin number"""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ConfigurationError):
             self.test_engine = self.test_engine.check_pins(0, 1, 2, "hello")
 
     def test_check_pins6(self):
