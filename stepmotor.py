@@ -43,7 +43,10 @@ class Stepper:
 
     def check_pins(self, i1, i2, i3, i4):
         """Control if selected pin numbers are valid"""
-        input_pins = [int(i1), int(i2), int(i3), int(i4)]
+        try:
+           input_pins = [int(i1), int(i2), int(i3), int(i4)]
+        except ValueError:
+            raise ConfigurationError("There is at least one pin with an incorrect. Pins must have unique numbers")
 
         # wiringpi library supports only 17 GPIO pins. See the official documentation for more informations
         for i in range(len(input_pins)):
@@ -69,52 +72,6 @@ class Stepper:
         for k in range(0, 4):
             # print(k, self.inp[k], self.half[phase][k])
             wiringpi.digitalWrite(self.inp[k], self.half[phase][k])
-
-    def move_with_constant_speed(self, steps, speed):
-        self.actual_speed = speed
-        t = 1 / self.actual_speed
-
-        for s in range(int(steps)):
-
-            # Control message. Helps during tests
-            print(self.num_step, t)
-            self.run_one_step()
-            self.num_step += 1 * self.direction
-            time.sleep(t)
-
-    def linear_acceleration(self, steps, acc_is_positive=True):
-        """Make the stepper accelerate/decelerate linearly with the time. Acceleration in controlled trough the
-        *self.acceleration_factor* parameter, and its standard value is set to 1"""
-        count = 1
-        if acc_is_positive:
-            acc_or_dec = 1
-
-            # Correct the speed in order to avoid ZeroDivisionError during the first definition of *t*
-            self.actual_speed = 1
-
-        elif not acc_is_positive:
-            acc_or_dec = -1
-
-        else:
-            raise SystemError
-
-        while count <= steps:
-            # Set the time between every step (~speed)
-            t = 1 / self.actual_speed
-
-            # Control message. Helps during tests
-            print(self.num_step, t)
-            self.run_one_step()
-
-            # Make the acceleration
-            self.actual_speed += 1 * self.acceleration_factor * acc_or_dec
-            self.num_step += 1 * self.direction
-            time.sleep(t)
-            count += 1
-
-        # Set the speed to 0 when the engine ends the deceleration
-        if not acc_is_positive:
-            self.actual_speed = 0
 
     def move(self, step_num=0, speed=0, direction=1):
         """Manages the acceleration, constant movement and deceleration of the stepper"""
@@ -165,16 +122,62 @@ class Stepper:
 
         print("\n acceleration steps=", acceleration_steps, "\n uniform speed steps=", constant_speed_steps)
 
-        self.linear_acceleration(acceleration_steps, acc_is_positive=True)
-        
+        self._linear_acceleration(acceleration_steps, acc_is_positive=True)
+
         # Set the right speed when acceleration phase is too short, and the engine couldn't reach the required speed.
         if speed > self.actual_speed:
             speed = self.actual_speed
-        self.move_with_constant_speed(constant_speed_steps, speed)
-        self.linear_acceleration(acceleration_steps, acc_is_positive=False)
+        self._move_with_constant_speed(constant_speed_steps, speed)
+        self._linear_acceleration(acceleration_steps, acc_is_positive=False)
 
         # Control message. Helps during tests
         print("\n Final check:\n", self.num_step, self.actual_speed, "\n\n")
+
+    def _move_with_constant_speed(self, steps, speed):
+        self.actual_speed = speed
+        t = 1 / self.actual_speed
+
+        for s in range(int(steps)):
+
+            # Control message. Helps during tests
+            print(self.num_step, t)
+            self.run_one_step()
+            self.num_step += 1 * self.direction
+            time.sleep(t)
+
+    def _linear_acceleration(self, steps, acc_is_positive=True):
+        """Make the stepper accelerate/decelerate linearly with the time. Acceleration in controlled trough the
+        *self.acceleration_factor* parameter, and its standard value is set to 1"""
+        count = 1
+        if acc_is_positive:
+            acc_or_dec = 1
+
+            # Correct the speed in order to avoid ZeroDivisionError during the first definition of *t*
+            self.actual_speed = 1
+
+        elif not acc_is_positive:
+            acc_or_dec = -1
+
+        else:
+            raise SystemError
+
+        while count <= steps:
+            # Set the time between every step (~speed)
+            t = 1 / self.actual_speed
+
+            # Control message. Helps during tests
+            print(self.num_step, t)
+            self.run_one_step()
+
+            # Make the acceleration
+            self.actual_speed += 1 * self.acceleration_factor * acc_or_dec
+            self.num_step += 1 * self.direction
+            time.sleep(t)
+            count += 1
+
+        # Set the speed to 0 when the engine ends the deceleration
+        if not acc_is_positive:
+            self.actual_speed = 0
 
     # def move(self, speed, rel=1, dir=1):  # speed = step/second Hz
     #
