@@ -62,7 +62,8 @@ class Stepper:
         # wiringpi library supports only 17 GPIO pins. See the official documentation for more informations
         for i in range(len(input_pins)):
             if input_pins[i] not in list(range(0, 17)):
-                raise ValueError("Error. You have selected at least one invalid pin.")
+                raise ConfigurationError("The pin number "
+                                         "{} does not exist. Valid pin numbers are from 0 to 16.".format(i+1))
 
         if not (input_pins[0] != input_pins[1] != input_pins[2] != input_pins[3]):
             raise ConfigurationError("There are two different pins with the same number. Pins must have unique numbers")
