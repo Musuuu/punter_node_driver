@@ -65,11 +65,6 @@ class PrimesTestCase (unittest.TestCase):
                                                  [0, 0, 1, 1],
                                                  [0, 0, 0, 1]])
 
-    @skip("Tested attributes will be removed")
-    def test_initial_acceleration_range(self):
-        self.assertEqual(self.test_engine.acc, 1000)
-        self.assertEqual(self.test_engine.dec, 1000)
-
     def test_initial_speed(self):
         self.assertEqual(self.test_engine.actspeed, 0)
 
