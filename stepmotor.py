@@ -29,10 +29,7 @@ class Stepper:
                      [0, 0, 1, 0],  # step 5
                      [0, 0, 1, 1],  # step 6
                      [0, 0, 0, 1]]  # step 7
-        self.acc = 1000  # steps
-        self.dec = self.acc  # steps
         self.actspeed = 0
-        ##############
         self.direction = None
         self.actual_speed = 0
 
