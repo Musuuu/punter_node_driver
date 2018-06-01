@@ -68,11 +68,7 @@ class PrimesTestCase (unittest.TestCase):
     def test_initial_speed(self):
         self.assertEqual(self.test_engine.actspeed, 0)
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # # #   Test the *set_pin* method of the class    # # #
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-    def test_check_pins1(self):
+    def test_initial_pin_configuration(self):
         """Tests if the pins are selected correctly"""
         self.assertEqual([0, 1, 2, 3], self.test_engine.inp)
 
