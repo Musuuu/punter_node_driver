@@ -65,7 +65,8 @@ class Stepper:
                 raise ConfigurationError("The pin number "
                                          "{} does not exist. Valid pin numbers are from 0 to 16.".format(i+1))
 
-        if not (input_pins[0] != input_pins[1] != input_pins[2] != input_pins[3]):
+        # control if there is not a single pin used two times
+        if len(set(input_pins)) != 4:
             raise ConfigurationError("There are two different pins with the same number. Pins must have unique numbers")
 
         self.inp = input_pins
