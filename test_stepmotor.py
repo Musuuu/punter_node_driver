@@ -80,28 +80,11 @@ class PrimesTestCase (unittest.TestCase):
         """Tests if the correct exception is raised when the user tries to use the same pin more times"""
         with self.assertRaises(ConfigurationError):
             self.test_engine.inp = self.test_engine.check_pins(1, 1, 1, 1)
-
-    def test_check_pins3(self):
-        """Tests if the correct exception is raised when the user gives an empty variable as pin number"""
-        with self.assertRaises(NameError):
-            self.test_engine.inp = self.test_engine.check_pins(0, 1, 2, a)
-
-    def test_check_pins4(self):
-        """Tests if the correct exception is raised when the user doesn't give an integer as pin number"""
-        with self.assertRaises(TypeError):
+            self.test_engine.inp = self.test_engine.check_pins(1, 0, 1, 5)
+            self.test_engine.inp = self.test_engine.check_pins(0, 1, 2, "a")
             self.test_engine = self.test_engine.check_pins(0, 1, 2, [1, 2])
-
-        with self.assertRaises(TypeError):
             self.test_engine = self.test_engine.check_pins(0, 1, 2, {1: "hello", 2: "world"})
-
-    def test_check_pins5(self):
-        """Tests if the correct exception is raised when the user give an char as pin number"""
-        with self.assertRaises(ConfigurationError):
             self.test_engine = self.test_engine.check_pins(0, 1, 2, "hello")
-
-    def test_check_pins6(self):
-        """Tests if the correct exception is raised when the user give a negative pin number"""
-        with self.assertRaises(ValueError):
             self.test_engine = self.test_engine.check_pins(0, 1, 2, -5)
 
     # # # # # # # # # # # # # # # # # # # # # # # # # #
