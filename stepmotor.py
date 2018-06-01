@@ -41,9 +41,23 @@ class Stepper:
     def check_pins(self, i1, i2, i3, i4):
         """Control if selected pin numbers are valid"""
         try:
-           input_pins = [int(i1), int(i2), int(i3), int(i4)]
+            int(i1)
         except ValueError:
-            raise ConfigurationError("There is at least one pin with an incorrect. Pins must have unique numbers")
+            raise ConfigurationError("The first pin ID is not an integer: {}".format(i1))
+        try:
+            int(i2)
+        except ValueError:
+            raise ConfigurationError("The second pin ID is not an integer: {}".format(i2))
+        try:
+            int(i3)
+        except ValueError:
+            raise ConfigurationError("The third pin ID is not an integer: {}".format(i3))
+        try:
+            int(i4)
+        except ValueError:
+            raise ConfigurationError("The fourth pin ID is not an integer: {}".format(i4))
+
+        input_pins = [int(i1), int(i2), int(i3), int(i4)]
 
         # wiringpi library supports only 17 GPIO pins. See the official documentation for more informations
         for i in range(len(input_pins)):
