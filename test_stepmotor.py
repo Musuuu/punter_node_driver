@@ -72,7 +72,11 @@ class PrimesTestCase (unittest.TestCase):
         """Tests if the pins are selected correctly"""
         self.assertEqual([0, 1, 2, 3], self.test_engine.inp)
 
-    def test_check_pins2(self):
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # #   Test the *check_pin* method of the class    # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def test_check_pins(self):
         """Tests if the correct exception is raised when the user tries to use the same pin more times"""
         with self.assertRaises(ConfigurationError):
             self.test_engine.inp = self.test_engine.check_pins(1, 1, 1, 1)
