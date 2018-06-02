@@ -40,6 +40,8 @@ class TestStepper(Stepper):
             if actual_acceleration_rate != self.acceleration_factor:
                 self.stepper_acceleration_rate_is_correct = False
 
+        if self.actual_speed > self.max_speed_reached:
+            self.max_speed_reached = self.actual_speed
         self.old_speed = self.actual_speed
 
     def move(self, step_num, speed):
