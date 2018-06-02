@@ -46,7 +46,11 @@ class TestStepper(Stepper):
 
     def move(self, step_num, speed):
         self.step_counter = 0
+        self.max_speed_reached = 0
+
+        start_time = time.time()
         super().move(step_num, speed)
+        self.real_time_used = time.time() - start_time
 
         # avoid to lose some errors sent back with *return* statement
         if super().move(step_num, speed) is not None:
