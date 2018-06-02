@@ -153,9 +153,10 @@ class PrimesTestCase (unittest.TestCase):
         self.assertEqual(self.test_engine.move(-100, -250), "Invalid input. step_num has to be positive")
         self.assertEqual(self.test_engine.move(-100, 250), "Invalid input. step_num has to be positive")
 
-    def test_move_with_wrong_data_types1(self):
-        """Test what happen with unusual data types"""
-        self.test_engine.move(100.123, 100.123, 4.123)
+    def test_move_with_wrong_data_types_float(self):
+        """Test what happen if user insert floating numbers as inputs"""
+        print("Running a simulation of the engine movement. Please wait")
+        self.test_engine.move(100.123, 100.123)
 
     @patch('wiringpi.digitalWrite', stub_digitalWrite)
     def test_move_with_wrong_data_types2(self):
