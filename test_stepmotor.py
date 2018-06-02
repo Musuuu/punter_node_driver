@@ -129,7 +129,11 @@ class PrimesTestCase (unittest.TestCase):
 
     def test_move_with_very_high_speed(self):
         """Test what happen while trying to set extreme high speed"""
-        self.test_engine.move(1000, 10000000, 1)
+        print("Running a simulation of the engine movement. Please wait")
+        self.test_engine.move(1000, 10000000)
+        self.assertTrue(self.test_engine.stepper_max_speed_is_acceptable)
+        self.assertTrue(self.test_engine.stepper_acceleration_rate_is_correct)
+        self.assertTrue(self.test_engine.stepper_total_step_number_is_correct)
 
     def test_move_with_illogical_values2(self):
         """Test what happen with speed equal to 0"""
