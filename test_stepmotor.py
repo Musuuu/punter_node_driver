@@ -159,34 +159,22 @@ class PrimesTestCase (unittest.TestCase):
         self.test_engine.move(100.123, 100.123)
 
     def test_move_with_wrong_data_types2(self):
-        """Test what happen when wrong data types are passed to the method: lists"""
-        self.test_engine.move([10, 10, 10], 250, 1)
-        self.test_engine.move(100, [10, 10, 10], 1)
-        self.test_engine.move(100, 250, [10, 10, 10])
+        """Test what happen when wrong data types are passed to the method: chars, lists, tuples and dictionaries"""
+        self.assertEqual(self.test_engine.move("foo", 250), "Invalid input. step_num has to be an integer")
+        self.assertEqual(self.test_engine.move([10, 10, 10], 250), "Invalid input. step_num has to be an integer")
+        self.assertEqual(self.test_engine.move((10, 10, 10), 250), "Invalid input. step_num has to be an integer")
+        self.assertEqual(self.test_engine.move({1: 10, 2: "foo"}, 250), "Invalid input. step_num has to be an integer")
 
-    def test_move_with_wrong_data_types3(self):
-        """Test what happen when wrong data types are passed to the method: tuples"""
-        self.test_engine.move((10, 10, 10), 250, 1)
-        self.test_engine.move(100, (10, 10, 10), 1)
-        self.test_engine.move(100, 250, (10, 10, 10))
-
-    def test_move_with_wrong_data_types4(self):
-        """Test what happen when wrong data types are passed to the method: dictionaries"""
-        self.test_engine.move({1: 10, 2: "foo"}, 250, 1)
-        self.test_engine.move(100, {1: 10, 2: "foo"}, 1)
-        self.test_engine.move(100, 250, {1: 10, 2: "foo"})
-
-    def test_move_with_wrong_data_types5(self):
-        """Test what happen when wrong data types are passed to the method: chars"""
-        self.test_engine.move("foo", 250, 1)
-        self.test_engine.move(100, "foo", 1)
-        self.test_engine.move(100, 250, "foo")
+        self.assertEqual(self.test_engine.move(100, "foo"), "Invalid input. speed has to be an integer")
+        self.assertEqual(self.test_engine.move(100, [10, 10, 10]), "Invalid input. speed has to be an integer")
+        self.assertEqual(self.test_engine.move(100, (10, 10, 10)), "Invalid input. speed has to be an integer")
+        self.assertEqual(self.test_engine.move(100, {1: 10, 2: "foo"}), "Invalid input. speed has to be an integer")
 
     def test_move_with_empty_data(self):
         """Test what happen when some data isn't specified"""
-        self.test_engine.move(None, 250, 1)
-        self.test_engine.move(100, None, 1)
-        self.test_engine.move(100, 250, None)
+        self.assertEqual(self.test_engine.move(None, 250), "Invalid input. You should choose a value for *step_num*")
+        self.assertEqual(self.test_engine.move(100, None),
+                         "Invalid input. You should choose a value for *speed*. A possible value could be 250 step/s")
 
 
 if __name__ == '__main__':
