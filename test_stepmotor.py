@@ -1,8 +1,8 @@
 import unittest
 from mock import patch
 from stepmotor import Stepper, ConfigurationError
-import functools
 from unittest import skip
+
 
 def stub_wiringPiSetup():
     """Simulates the correct initialization of the board"""
