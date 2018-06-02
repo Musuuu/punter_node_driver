@@ -2,6 +2,8 @@ import unittest
 from mock import patch
 from stepmotor import Stepper, ConfigurationError
 from unittest import skip
+from random import randint
+import time
 
 
 def stub_wiringPiSetup():
