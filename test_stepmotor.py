@@ -158,7 +158,6 @@ class PrimesTestCase (unittest.TestCase):
         print("Running a simulation of the engine movement. Please wait")
         self.test_engine.move(100.123, 100.123)
 
-    @patch('wiringpi.digitalWrite', stub_digitalWrite)
     def test_move_with_wrong_data_types2(self):
         """Test what happen when wrong data types are passed to the method: lists"""
         self.test_engine.move([10, 10, 10], 250, 1)
