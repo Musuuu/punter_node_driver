@@ -186,6 +186,72 @@ class PrimesTestCase (unittest.TestCase):
         self.assertEqual(self.test_engine.move(100, None),
                          "Invalid input. You should choose a value for *speed*. A possible value could be 250 step/s")
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # #   Test the predictability of the engine's behavior  # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    @staticmethod
+    def calculate_theoretical_values(input_steps, input_speed, acceleration_factor):
+        """Calculate the time and the maximum speed that should be theoretically obtained with an ideal engine"""
+
+        acceleration_steps = int(input_speed / acceleration_factor)
+        max_speed_reachable = input_speed
+        if acceleration_steps > (input_steps / 2):
+            acceleration_steps = int(input_steps / 2)
+            max_speed_reachable = acceleration_steps * acceleration_factor
+        constant_speed_steps = input_steps - (2 * acceleration_steps)
+
+        t_acc = 0
+        for i in range(acceleration_steps):
+            t_acc += 1 / (acceleration_factor * (i + 1))
+
+        t_maxs = constant_speed_steps / max_speed_reachable
+
+        t_tot = 2 * t_acc + t_maxs
+
+        return [t_tot, max_speed_reachable]
+
+    def casual_values(self):
+        """Create a set of random variables for an hypothetical engine"""
+        steps = randint(1, 5000)
+        speed = randint(self.test_engine.MIN_SPEED, self.test_engine.MAX_SPEED)
+        acceleration_factor = randint(1, 5)
+
+        return [steps, speed, acceleration_factor]
+
+    def test_expected_behavior_measuring_time_and_speed(self):
+        """Measure the gap between the ideal and the simulated engine"""
+        for i in range(10):
+            c = self.casual_values()
+            results = self.calculate_theoretical_values(c[0], c[1], c[2])
+
+            print("   TEST  # ", i+1)
+            print("Starting simulation with\nSteps = ", c[0], "\nSpeed = ", c[1], "\nAccel. factor = ", c[2])
+            print("Theoretical time = ", results[0])
+            print("Theoretical max speed = ", results[1])
+
+            self.test_engine.acceleration_factor = c[2]
+            self.test_engine.move(c[0], c[1])
+
+            print("Real time used = ", self.test_engine.real_time_used)
+            print("Real max speed reached = ", self.test_engine.max_speed_reached)
+
+            if self.test_engine.real_time_used > results[0]:
+                time_percentage_error = (abs(self.test_engine.real_time_used / results[0]) - 1) * 100
+            else:
+                time_percentage_error = (1 - abs(self.test_engine.real_time_used / results[0])) * 100
+
+            if self.test_engine.max_speed_reached > results[1]:
+                speed_percentage_error = abs(abs(self.test_engine.max_speed_reached / results[1]) - 1) * 100
+            else:
+                speed_percentage_error = abs(1 - abs(self.test_engine.max_speed_reached / results[1])) * 100
+
+            print("\nPercentage errors: SPEED = ", speed_percentage_error, "   TIME = ", time_percentage_error)
+            print("\n\n")
+
+            self.assertLess(time_percentage_error, 10, "Error < 10%")
+            self.assertLess(speed_percentage_error, 1, "Error < 1%")
+
 
 if __name__ == '__main__':
     unittest.main()
