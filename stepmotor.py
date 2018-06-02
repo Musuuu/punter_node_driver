@@ -154,11 +154,12 @@ class Stepper:
 
     def _linear_acceleration(self, steps, acc_is_positive):
         """Make the stepper accelerate/decelerate linearly with the time. Acceleration in controlled trough the
-        *self.acceleration_factor* parameter, and its standard value is set to 1"""
+        *self.acceleration_factor* parameter, and its standard value is set to 1.
+        Do not call this method manually, it could damage your engine."""
+        acc_or_dec = 1
         count = 1
         if acc_is_positive:
-            acc_or_dec = 1
-
+            # Engine is accelerating
             # Correct the speed in order to avoid ZeroDivisionError during the first definition of *t*
             self.actual_speed = 1
 
