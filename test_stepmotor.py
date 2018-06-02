@@ -150,7 +150,8 @@ class PrimesTestCase (unittest.TestCase):
 
     def test_move_with_invalid_values(self):
         """Test what happen with negative speed, step number and direction"""
-        self.test_engine.move(-100, -250, -1)
+        self.assertEqual(self.test_engine.move(-100, -250), "Invalid input. step_num has to be positive")
+        self.assertEqual(self.test_engine.move(-100, 250), "Invalid input. step_num has to be positive")
 
     def test_move_with_wrong_data_types1(self):
         """Test what happen with unusual data types"""
