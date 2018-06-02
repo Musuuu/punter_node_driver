@@ -140,11 +140,12 @@ class Stepper:
         print("\n Final check:\n", self.num_step, self.actual_speed, "\n\n")
 
     def _move_with_constant_speed(self, steps, speed):
+        """Make the stepper move with a constant speed.
+        Do not call this method manually, it could damage your engine."""
         self.actual_speed = speed
         t = 1 / self.actual_speed
 
         for s in range(int(steps)):
-
             # Control message. Helps during tests
             print(self.num_step, t)
             self.run_one_step()
