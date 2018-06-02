@@ -136,9 +136,6 @@ class Stepper:
         self._move_with_constant_speed(constant_speed_steps, speed)
         self._linear_acceleration(acceleration_steps, acc_is_positive=False)
 
-        # Control message. Helps during tests
-        print("\n Final check:\n", self.num_step, self.actual_speed, "\n\n")
-
     def _move_with_constant_speed(self, steps, speed):
         """Make the stepper move with a constant speed.
         Do not call this method manually, it could damage your engine."""
