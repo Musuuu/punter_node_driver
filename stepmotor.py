@@ -152,7 +152,7 @@ class Stepper:
             self.num_step += 1 * self.direction
             time.sleep(t)
 
-    def _linear_acceleration(self, steps, acc_is_positive=True):
+    def _linear_acceleration(self, steps, acc_is_positive):
         """Make the stepper accelerate/decelerate linearly with the time. Acceleration in controlled trough the
         *self.acceleration_factor* parameter, and its standard value is set to 1"""
         count = 1
