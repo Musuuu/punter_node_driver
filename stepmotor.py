@@ -163,11 +163,9 @@ class Stepper:
             # Correct the speed in order to avoid ZeroDivisionError during the first definition of *t*
             self.actual_speed = 1 * self.acceleration_factor
 
-        elif not acc_is_positive:
+        if not acc_is_positive:
+            # Engine is decelerating
             acc_or_dec = -1
-
-        else:
-            raise SystemError
 
         while count <= steps:
             # Set the time between every step (~speed)
