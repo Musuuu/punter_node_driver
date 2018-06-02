@@ -127,11 +127,7 @@ class Stepper:
         # Control if the acceleration phases are not too long
         if acceleration_steps > (step_num / 2):
             acceleration_steps = (step_num / 2)
-
         constant_speed_steps = step_num - (2 * acceleration_steps)
-
-        print("\n acceleration steps=", acceleration_steps, "\n uniform speed steps=", constant_speed_steps)
-
         self._linear_acceleration(acceleration_steps, acc_is_positive=True)
 
         # Set the right speed when acceleration phase is too short, and the engine couldn't reach the required speed.
