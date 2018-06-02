@@ -147,7 +147,7 @@ class Stepper:
 
         for s in range(int(steps)):
             # Control message. Helps during tests
-            print(self.num_step, t)
+            # print(self.num_step, self.actual_speed, t)
             self.run_one_step()
             self.num_step += 1 * self.direction
             time.sleep(t)
@@ -173,7 +173,7 @@ class Stepper:
             t = 1 / self.actual_speed
 
             # Control message. Helps during tests
-            print(self.num_step, t)
+            # print(self.num_step, self.actual_speed, t)
             self.run_one_step()
 
             # Make the acceleration
