@@ -104,11 +104,11 @@ class PrimesTestCase (unittest.TestCase):
     # # #   Test the *stop* method of the class   # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    @patch('wiringpi.digitalWrite', stub_digitalWrite)
-    def test_stop(self):
-        """Tests if the *stop* method works as expected"""
+    @patch('wiringpi.digitalWrite')
+    def test_stop(self, mock_digitalWrite):
+        """Tests if the *stop* method calls wiringpi.digitalWrite method as expected"""
         self.test_engine.stop()
-        self.assertTrue(self.stub_digitalWrite.has_been_called)
+        assert mock_digitalWrite.called
 
     # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # #   Test the *move* method of the class   # # #
