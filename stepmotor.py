@@ -98,15 +98,6 @@ class Stepper:
             return "Invalid input. You should choose a value for *speed*. A possible value could be 250 step/s"
 
         try:
-            
-            # Set a correct direction value
-            direction = int(direction)
-            if direction > 0:
-                direction = 1
-            else:
-                direction = -1
-
-            # Manage a negative step_num
             step_num = int(step_num)
             if step_num < 0:
                 step_num = step_num * -1
