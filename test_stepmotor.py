@@ -52,9 +52,9 @@ class TestStepper(Stepper):
 class PrimesTestCase (unittest.TestCase):
     """Tests for the stepper class"""
 
-    # # # # # # # # # # # # # # # # # # # # # #
-    # # #   Setting up test boundaries    # # #
-    # # # # # # # # # # # # # # # # # # # # # #
+    # # # # # # # # # # # # # # # # # # # #
+    # # #   Set up test boundaries    # # #
+    # # # # # # # # # # # # # # # # # # # #
 
     @patch('wiringpi.wiringPiSetup', stub_wiringPiSetup)
     # @patch('wiringpi.pinMode', pinMode)
