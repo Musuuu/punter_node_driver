@@ -85,10 +85,18 @@ class Stepper:
         for k in range(0, 4):
             wiringpi.digitalWrite(self.inp[k], self.half[phase][k])
 
-    def move(self, step_num=0, speed=0, direction=1):
-        """Manages the acceleration, constant movement and deceleration of the stepper"""
-        
-        # Correct invalid *direction* values and verify inputs validity
+    def move(self, step_num, speed):
+        """Manages the acceleration, constant movement and deceleration of the stepper.
+
+        *step_num* can be positive and negative: negative values make the engine turn in the opposite direction;
+        *speed* must be positive, and should respect the hardware limitations"""
+
+        # Verify parameters' validity
+        if step_num is None:
+            return "Invalid input. You should choose a value for *step_num*"
+        if speed is None:
+            return "Invalid input. You should choose a value for *speed*. A possible value could be 250 step/s"
+
         try:
             
             # Set a correct direction value
