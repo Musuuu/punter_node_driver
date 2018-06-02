@@ -19,6 +19,8 @@ class TestStepper(Stepper):
         self.old_speed = self.actual_speed
         self.old_num_step = self.num_step
         self.step_counter = 0
+        self.max_speed_reached = 0
+        self.real_time_used = 0
 
         # Control conditions
         # self.stepper_is_really_accelerating = False
