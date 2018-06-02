@@ -185,63 +185,6 @@ class Stepper:
         if not acc_is_positive:
             self.actual_speed = 0
 
-    # def move(self, speed, rel=1, dir=1):  # speed = step/second Hz
-    #
-    #     # CONTROL OF INPUTS
-    #
-    #     # Round the value of the speed to the next integer
-    #     speed = int(speed - speed % 1)
-    #     if speed not in range(10, 1000):
-    #         raise ValueError("The selected value of the speed is not valid. "
-    #                          "Choose an integer between ", self.MIN_SPEED, " and ", self.MAX_SPEED, " step/s")
-    #
-    #     # Control of direction
-    #     if dir >= 0:
-    #         d = 1
-    #     else:
-    #         d = -1
-    #
-    #     refspeed = speed
-    #     self.actspeed = 1
-    #     dec = self.dec
-    #
-    #     count=1
-    #
-    #     # go slower if starting close to the target position
-    #     if rel <= self.dec:
-    #         dec = rel/2
-    #
-    #     for s in range(0, int(rel)):
-    #         # index of the actual relative position
-    #         self.num_step = self.num_step+d
-    #
-    #         # deceleration starting point
-    #         if s == rel - dec:
-    #             refspeed = 0
-    #         t = 1.0/self.actspeed
-    #         actacc = speed/self.acc
-    #         print(self.num_step, 1.0/self.actspeed)
-    #         phase = self.num_step % 8
-    #         for k in range(0, 4):
-    #             # print (k, self.inp[k],self.half[phase][k])
-    #             wiringpi.digitalWrite(self.inp[k], self.half[phase][k])
-    #
-    #         # control the speed during the acceleration phase
-    #         if self.actspeed < refspeed:
-    #             print("+ 100")
-    #             self.actspeed = self.actspeed + 1
-    #             if self.actspeed > speed:
-    #                 self.actspeed = speed
-    #
-    #         # control the speed during the deceleration phase
-    #         elif self.actspeed > refspeed:
-    #             print("- 100")
-    #             self.actspeed = self.actspeed - 1
-    #             if self.actspeed <= 0:
-    #                 self.actspeed = 1
-    #                 return
-    #         time.sleep(t)
-    #         count += 1
 
 # motor1 = Stepper(7, 0, 2, 3)
 # while 0:
