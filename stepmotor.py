@@ -161,7 +161,7 @@ class Stepper:
         if acc_is_positive:
             # Engine is accelerating
             # Correct the speed in order to avoid ZeroDivisionError during the first definition of *t*
-            self.actual_speed = 1
+            self.actual_speed = 1 * self.acceleration_factor
 
         elif not acc_is_positive:
             acc_or_dec = -1
