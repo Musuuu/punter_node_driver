@@ -99,22 +99,21 @@ class Stepper:
 
         try:
             step_num = int(step_num)
-            if step_num < 0:
-                step_num = step_num * -1
-                direction = direction * -1
+        except(TypeError, ValueError):
+            return "Invalid input. step_num has to be an integer"
+        if step_num < 0:
+            return "Invalid input. step_num has to be positive"
 
-            # Manage a negative speed
+        try:
             speed = int(speed)
-            if speed < 0:
-                speed = speed * -1
-                direction = direction * -1
-            if speed == 0:
-                return self.stop()
+        except(TypeError, ValueError):
+            return "Invalid input. speed has to be an integer"
 
-        except (TypeError, ValueError):
-            return "FATAL ERROR.\nYou tried to move the engine with invalid parameters"
-
-        self.direction = direction
+        if speed >= 0:
+            self.direction = 1
+        if speed < 0:
+            self.direction = -1
+            speed = abs(speed)
 
         # Apply hardware's speed limits
         if speed > self.MAX_SPEED:
