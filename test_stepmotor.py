@@ -58,7 +58,7 @@ class PrimesTestCase (unittest.TestCase):
 
     @patch('wiringpi.wiringPiSetup', stub_wiringPiSetup)
     def setUp(self):
-        self.test_engine = Stepper(0, 1, 2, 3)
+        self.test_engine = TestStepper(0, 1, 2, 3)
         self.test_engine.acceleration_factor = 2
 
     @track_calls
