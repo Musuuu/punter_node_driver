@@ -61,14 +61,6 @@ class PrimesTestCase (unittest.TestCase):
         self.test_engine = TestStepper(0, 1, 2, 3)
         self.test_engine.acceleration_factor = 2
 
-    @track_calls
-    def stub_digitalWrite(pin, value):
-        if int(value) in (0, 1) and int(pin) == pin:
-            return True
-        else:
-            raise ValueError('You tried to set the pin #', pin+1, ' with an incorrect value. '
-                             'Only *0* and *1* are accepted')
-
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # #   Test if parameters are correctly initialised    # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
