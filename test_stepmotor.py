@@ -9,22 +9,44 @@ def stub_wiringPiSetup():
     return True
 
 
-def pinMode(pin, mode):
-    """Change the mode o a pin"""
-    if mode in ("1", "0"):
-        return True
-    else:
-        raise ValueError('You tried to set the ', pin, ' pin with an incorrect status. '
-                         'Select 0 for input and 1 for output mode')
+class TestStepper(Stepper):
+    """Add some code in order to make effective tests"""
 
+    def __init__(self, i1, i2, i3, i4):
+        super().__init__(i1, i2, i3, i4)
+        self.old_speed = self.actual_speed
+        self.old_num_step = self.num_step
+        self.step_counter = 0
 
-def track_calls(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        wrapper.has_been_called = True
-        return func(*args, **kwargs)
-    wrapper.has_been_called = False
-    return wrapper
+        # Control conditions
+        # self.stepper_is_really_accelerating = False
+        self.stepper_max_speed_is_acceptable = True
+        self.stepper_acceleration_rate_is_correct = True
+        self.stepper_total_step_number_is_correct = False
+
+    def run_one_step(self):
+        super().run_one_step()
+        self.step_counter += 1
+
+        if self.actual_speed != self.old_speed:
+            if self.actual_speed > self.old_speed:
+                if self.actual_speed > self.MAX_SPEED:
+                    self.stepper_max_speed_is_acceptable = False
+            actual_acceleration_rate = abs(self.actual_speed - self.old_speed)
+            if actual_acceleration_rate != self.acceleration_factor:
+                self.stepper_acceleration_rate_is_correct = False
+
+        self.old_speed = self.actual_speed
+
+    def move(self, step_num, speed):
+        self.step_counter = 0
+        super().move(step_num, speed)
+
+        # avoid to lose some errors sent back with *return* statement
+        if super().move(step_num, speed) is not None:
+            return super().move(step_num, speed)
+        if self.step_counter == self.num_step:
+            self.stepper_total_step_number_is_correct = True
 
 
 class PrimesTestCase (unittest.TestCase):
