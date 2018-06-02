@@ -83,7 +83,6 @@ class Stepper:
 
         # Do the step
         for k in range(0, 4):
-            # print(k, self.inp[k], self.half[phase][k])
             wiringpi.digitalWrite(self.inp[k], self.half[phase][k])
 
     def move(self, step_num=0, speed=0, direction=1):
