@@ -148,7 +148,7 @@ class PrimesTestCase (unittest.TestCase):
         self.assertTrue(self.test_engine.stepper_acceleration_rate_is_correct)
         self.assertTrue(self.test_engine.stepper_total_step_number_is_correct)
 
-    def test_move_with_illogical_values4(self):
+    def test_move_with_invalid_values(self):
         """Test what happen with negative speed, step number and direction"""
         self.test_engine.move(-100, -250, -1)
 
