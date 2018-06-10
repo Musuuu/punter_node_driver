@@ -203,6 +203,10 @@ class Stepper:
             self.num_step += 1 * self.direction
             time.sleep(t)
             count += 1
+            if self.debug:
+                self.absolute_time += t
+                with open(self.debug_filepath, "a") as f:
+                    f.write(str(self.absolute_time) + "\t" + str(self.num_step) + "\t" + str(self.actual_speed) + "\n")
 
         # Set the speed to 0 when the engine ends the deceleration
         if not acc_is_positive:
