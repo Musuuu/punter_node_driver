@@ -107,7 +107,7 @@ class Stepper:
         for k in range(0, 4):
             wiringpi.digitalWrite(self.inp[k], self.half[phase][k])
 
-    def move(self, step_num, speed):
+    def move(self, step_num, speed, debug=False):
         """Manages the acceleration, constant movement and deceleration of the stepper.
 
         *step_num* can be positive and negative: negative values make the engine turn in the opposite direction;
