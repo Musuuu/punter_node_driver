@@ -37,7 +37,28 @@ class Stepper:
         # Hardware constrains
         self.acceleration_factor = 1
         self.MIN_SPEED = 10    # Steps/sec
-        self.MAX_SPEED = 1000  # Steps/sec
+        self.MAX_SPEED = 500  # Steps/sec
+
+        # Debugging variables
+        self.debug = False
+        self.debug_filename = ""
+        if debug:
+            self.debug = True
+
+            # outputs ['YYYY-MM-DD', 'hh:mm:ss.milliseconds']
+            date = str(datetime.datetime.now()).split(" ")
+            actual_time = date[1].split(".")
+            # extract YYY-MM-DD
+            day = date[0]
+            # extract hh:mm:ss
+            hour = actual_time[0]
+
+            filepath = "debugfiles/" + "debugging_" + day + "_" + hour + ".dat"
+            f = open(filepath, "w+")
+            f.write("")
+            f.close()
+            self.debug_filepath = filepath
+        self.absolute_time = 0
 
     def check_pins(self, i1, i2, i3, i4):
         """Control if selected pin numbers are valid"""
