@@ -9,7 +9,7 @@ class ConfigurationError(Exception):
 
 
 class Stepper:
-    def __init__(self, i1, i2, i3, i4):
+    def __init__(self, i1, i2, i3, i4, debug=False):
         wiringpi.wiringPiSetup()
         self.inp = [None, None, None, None]
         self.check_pins(i1, i2, i3, i4)
