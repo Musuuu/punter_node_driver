@@ -256,15 +256,65 @@ class Stepper:
 
         self._linear_acceleration(acceleration_steps, acc_is_positive=True)
 
+        if self.debug:
+            differ_time = start_time
+            self.real_time_acceleration = time.time() - differ_time
+            if self._movement_did_well():
+                logging.info("Acceleration interval was executed. Everything went well")
+            else:
+                logging.info("During acceleration interval something unexpected happened")
+            logging.debug("Real time spent accelerating is {}".format(self.real_time_acceleration))
+
         # Set the right speed when acceleration phase is too short, and the engine couldn't reach the required speed.
         if speed > self.actual_speed:
             speed = self.actual_speed
+
         self._move_with_constant_speed(constant_speed_steps, speed)
+
+        if self.debug:
+            differ_time += self.real_time_acceleration
+            self.real_time_constant_speed = time.time() - differ_time
+            if self._movement_did_well():
+                logging.info("Constant speed interval was executed. Everything went well")
+            else:
+                logging.info("During constant speed interval something unexpected happened")
+            logging.debug("Real time spent moving at constant speed is {}".format(self.real_time_constant_speed))
+            self.t_start_deceleration = self.absolute_time
+            self.step_start_deceleration = self.actual_num_step
+            self.old_speed = self.actual_speed
+
         self._linear_acceleration(acceleration_steps, acc_is_positive=False)
+
+        if self.debug:
+            differ_time += self.real_time_constant_speed
+            self.real_time_deceleration = time.time() - differ_time
+
+            if self._movement_did_well():
+                logging.info("Deceleration interval was executed. Everything went well")
+            else:
+                logging.info("During deceleration interval something unexpected happened")
+            logging.debug("Real time spent decelerating is {}".format(self.real_time_deceleration))
+
+            if self.actual_num_step == step_num:
+                self.stepper_total_step_number_is_correct = True
+            else:
+                logging.warning("Total number of steps done differs from the number specified: "
+                                "\nnum of steps wanted : {}".format(step_num) +
+                                "\nnum of steps done = {}".format(self.actual_num_step) +
+                                "\nwhere {} are acceleration steps, ".format(acceleration_steps) +
+                                "and {} are constant speed steps".format(constant_speed_steps))
+
+            logging.info("The whole movement cycle is finish.\n")
+            t_tot = self.real_time_acceleration + self.real_time_constant_speed + self.real_time_deceleration
+            logging.debug("Max speed reached = {}\n"
+                          "Execution was completed in {} seconds\n\n\n"
+                          "###########################################################\n\n"
+                          "".format(self.max_speed_reached, t_tot))
 
     def _move_with_constant_speed(self, steps, speed):
         """Make the stepper move with a constant speed.
         Do not call this method manually, it could damage your engine."""
+        self.acc_or_dec = 0
         self.actual_speed = speed
         t = 1 / self.actual_speed
 
