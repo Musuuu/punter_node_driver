@@ -174,7 +174,49 @@ class Stepper:
         for k in range(0, 4):
             wiringpi.digitalWrite(self.inp[k], self.half[phase][k])
 
-    def move(self, step_num, speed, debug=False):
+        if self.debug:
+            real_acceleration = 0
+
+            # Positive acceleration control
+            if self.acc_or_dec == 1:
+                self.t = self.absolute_time
+                real_acceleration = int(round(2 * self.actual_num_step / self.t**2))
+
+                # Safety control
+                if self.actual_speed > self.MAX_SPEED:
+                    self.stepper_max_speed_is_acceptable = False
+
+                # Refresh max speed touched
+                if self.actual_speed > self.max_speed_reached:
+                    self.max_speed_reached = self.actual_speed
+
+            # Negative acceleration control
+            if self.acc_or_dec == -1:
+                self.dec_steps -= 1
+                self.t = self.absolute_time - self.t_start_deceleration
+                # from physics ==>   s = -1/2 * a * t^2 + v_0 * t
+                real_acceleration = int(round(2 * (self.max_speed_reached / self.t - (self.actual_num_step
+                                                   - self.step_start_deceleration) / self.t**2)))
+
+            # Zero acceleration control
+            if self.acc_or_dec == 0:
+                self.old_num_step = self.actual_num_step
+
+            # To do during acceleration phase
+            else:
+                if real_acceleration != self.acceleration_factor:
+                    logging.warning("At step {} the real acceleration was {} "
+                                    "instead of {}.\nSpeed = {} Time = {}\n".format(self.actual_num_step,
+                                                                                    real_acceleration,
+                                                                                    self.acceleration_factor,
+                                                                                    self.max_speed_reached,
+                                                                                    self.t))
+                    self.movement_control_passed = False
+
+            self.old_num_step = self.actual_num_step
+            self.old_speed = self.actual_speed
+
+    def move(self, step_num, speed):
         """Manages the acceleration, constant movement and deceleration of the stepper.
 
         *step_num* can be positive and negative: negative values make the engine turn in the opposite direction;
