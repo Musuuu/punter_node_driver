@@ -233,5 +233,5 @@ if __name__ == '__main__':
         logger.setLevel(logging.INFO)
     else:
         logger.setLevel(logging.ERROR)
-
+staticmethods
     unittest.main()
