@@ -24,7 +24,7 @@ class Stepper:
         wiringpi.digitalWrite(i2, 0)
         wiringpi.digitalWrite(i3, 0)
         wiringpi.digitalWrite(i4, 0)
-        self.num_step = 0
+        self.actual_num_step = 0
         self.half = [[1, 0, 0, 1],  # step 0
                      [1, 0, 0, 0],  # step 1
                      [1, 1, 0, 0],  # step 2
@@ -33,8 +33,8 @@ class Stepper:
                      [0, 0, 1, 0],  # step 5
                      [0, 0, 1, 1],  # step 6
                      [0, 0, 0, 1]]  # step 7
-        self.actspeed = 0
         self.direction = None
+        self.acc_or_dec = None
         self.actual_speed = 0
 
         # Hardware constrains
@@ -44,9 +44,19 @@ class Stepper:
 
         # Debugging variables
         self.debug = False
-        self.debug_filename = ""
         if debug:
             self.debug = True
+            self.old_speed = self.actual_speed
+            self.old_num_step = self.actual_num_step
+            self.max_speed_reached = 0
+            self.t_start_deceleration = 0
+            self.step_start_deceleration = 0
+            self.dec_steps = 0
+            self.t = 0
+            self.absolute_time = 0
+            self.real_time_acceleration = 0
+            self.real_time_constant_speed = 0
+            self.real_time_deceleration = 0
 
             # outputs ['YYYY-MM-DD', 'hh:mm:ss.milliseconds']
             date = str(datetime.datetime.now()).split(" ")
