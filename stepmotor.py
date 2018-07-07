@@ -249,8 +249,10 @@ class Stepper:
         acceleration_steps = self._acceleration_steps(step_num, speed, self.acceleration_factor)
         constant_speed_steps = step_num - (2 * acceleration_steps)
 
-        # Number of steps of the speed changing intervals
-        acceleration_steps = int(speed / self.acceleration_factor)
+        if self.debug:
+            self._init_par()
+            logging.info("Starting a new movement cycle: "
+                         "Steps = {}, Speed = {}, Acceleration = {}".format(step_num, speed, self.acceleration_factor))
 
         # Control if the acceleration phases are not too long
         if acceleration_steps > (step_num / 2):
