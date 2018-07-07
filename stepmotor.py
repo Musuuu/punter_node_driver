@@ -331,34 +331,36 @@ class Stepper:
         """Make the stepper accelerate/decelerate linearly with the time. Acceleration in controlled trough the
         *self.acceleration_factor* parameter, and its standard value is set to 1.
         Do not call this method manually, it could damage your engine."""
-        acc_or_dec = 1
+
+        self.acc_or_dec = 1
+        t = 0
+        n = 0
         count = 1
-        if acc_is_positive:
-            # Engine is accelerating
-            # Correct the speed in order to avoid ZeroDivisionError during the first definition of *t*
-            self.actual_speed = 1 * self.acceleration_factor
 
         if not acc_is_positive:
             # Engine is decelerating
-            acc_or_dec = -1
+            self.acc_or_dec = -1
+            n = steps
+            self.dec_steps = n
 
         while count <= steps:
-            # Set the time between every step (~speed)
-            t = 1 / self.actual_speed
+            if acc_is_positive:
+                t = sqrt(2 / self.acceleration_factor) * (sqrt(n+1) - sqrt(n))
+            if not acc_is_positive:
+                t = sqrt(2 / self.acceleration_factor) * (sqrt(n) - sqrt(n-1))
 
-            # Control message. Helps during tests
-            # print(self.num_step, self.actual_speed, t)
-            self.run_one_step()
-
-            # Make the acceleration
-            self.actual_speed += 1 * self.acceleration_factor * acc_or_dec
-            self.num_step += 1 * self.direction
             time.sleep(t)
+            self.actual_speed = 1 / t
             count += 1
+            n += self.acc_or_dec * 1
+
             if self.debug:
+                self.t = t
                 self.absolute_time += t
                 with open(self.debug_filepath, "a") as f:
-                    f.write(str(self.absolute_time) + "\t" + str(self.num_step) + "\t" + str(self.actual_speed) + "\n")
+                    f.write(
+                        str(self.absolute_time) + "\t" + str(self.actual_num_step) + "\t" + str(1/t) + "\n")
+            self.run_one_step()
 
         # Set the speed to 0 when the engine ends the deceleration
         if not acc_is_positive:
