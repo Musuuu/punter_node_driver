@@ -245,17 +245,9 @@ class Stepper:
         except(TypeError, ValueError):
             return "Invalid input. speed has to be an integer"
 
-        if speed >= 0:
-            self.direction = 1
-        if speed < 0:
-            self.direction = -1
-            speed = abs(speed)
-
-        # Apply hardware's speed limits
-        if speed > self.MAX_SPEED:
-            speed = self.MAX_SPEED
-        if speed < self.MIN_SPEED:
-            speed = self.MIN_SPEED
+        speed = self._corrected_speed(speed)
+        acceleration_steps = self._acceleration_steps(step_num, speed, self.acceleration_factor)
+        constant_speed_steps = step_num - (2 * acceleration_steps)
 
         # Number of steps of the speed changing intervals
         acceleration_steps = int(speed / self.acceleration_factor)
