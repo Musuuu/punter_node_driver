@@ -367,6 +367,7 @@ class Stepper:
             self.actual_speed = 0
 
 
+# def main():
 # motor1 = Stepper(7, 0, 2, 3)
 # while 0:
 #     motor1.move(2000, int(4096/2), 1)
