@@ -319,15 +319,13 @@ class Stepper:
         t = 1 / self.actual_speed
 
         for s in range(int(steps)):
-            # Control message. Helps during tests
-            # print(self.num_step, self.actual_speed, t)
             self.run_one_step()
-            self.num_step += 1 * self.direction
-            time.sleep(t)
             if self.debug:
                 self.absolute_time += t
                 with open(self.debug_filepath, "a") as f:
-                    f.write(str(self.absolute_time) + "\t" + str(self.num_step) + "\t" + str(self.actual_speed) + "\n")
+                    f.write(str(self.absolute_time) + "\t" + str(self.actual_num_step)
+                            + "\t" + str(self.actual_speed) + "\n")
+            time.sleep(t)
 
     def _linear_acceleration(self, steps, acc_is_positive):
         """Make the stepper accelerate/decelerate linearly with the time. Acceleration in controlled trough the
