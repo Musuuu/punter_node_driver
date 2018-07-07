@@ -2,6 +2,9 @@ import wiringpi
 import time
 import threading
 import datetime
+from math import sqrt as sqrt
+from math import ceil
+import logging
 
 
 class ConfigurationError(Exception):
