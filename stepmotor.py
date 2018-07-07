@@ -71,7 +71,36 @@ class Stepper:
             f.write("")
             f.close()
             self.debug_filepath = filepath
+
+            # Control conditions
+            self.movement_control_passed = True
+            self.stepper_max_speed_is_acceptable = True
+            self.stepper_acceleration_is_correct = True
+            self.stepper_total_step_number_is_correct = False
+
+    def _init_par(self):
+        """Initialize parameters"""
+        self.old_speed = self.actual_speed
+        self.old_num_step = self.actual_num_step
+        self.max_speed_reached = 0
+        self.t_start_deceleration = 0
+        self.step_start_deceleration = 0
+        self.dec_steps = 0
+        self.t = 0
         self.absolute_time = 0
+        self.real_time_acceleration = 0
+        self.real_time_constant_speed = 0
+        self.real_time_deceleration = 0
+
+    def _movement_did_well(self):
+        """Returns true if the movement interval did not raise errors"""
+        passed = self.movement_control_passed
+        self.movement_control_passed = True
+
+        if passed:
+            return True
+        else:
+            return False
 
     def check_pins(self, i1, i2, i3, i4):
         """Control if selected pin numbers are valid"""
@@ -106,6 +135,30 @@ class Stepper:
 
         self.inp = input_pins
 
+    def _corrected_speed(self, speed):
+        if speed >= 0:
+            self.direction = 1
+        if speed < 0:
+            self.direction = -1
+            speed = abs(speed)
+
+            # Apply hardware's speed limits
+        if speed > self.MAX_SPEED:
+            speed = self.MAX_SPEED
+        if speed < self.MIN_SPEED:
+            speed = self.MIN_SPEED
+        return speed
+
+    @staticmethod
+    def _acceleration_steps(step_num, speed, acc_factor):
+        # Number of steps of the speed changing intervals
+        acceleration_steps = int(speed ** 2 / 2 / acc_factor)
+
+        # Control if the acceleration phases are not too long
+        if acceleration_steps > (step_num / 2):
+            acceleration_steps = int(step_num / 2)
+        return acceleration_steps
+
     def stop(self):
         wiringpi.digitalWrite(self.inp[0], 0)
         wiringpi.digitalWrite(self.inp[2], 0)
@@ -114,7 +167,8 @@ class Stepper:
 
     def run_one_step(self):
         """Change the power configuration of the pins in order to do one step in a certain direction."""
-        phase = (self.num_step % 8) * self.direction
+        self.actual_num_step += 1
+        phase = (self.actual_num_step % 8) * self.direction
 
         # Do the step
         for k in range(0, 4):
