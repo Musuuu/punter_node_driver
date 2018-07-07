@@ -222,6 +222,11 @@ class Stepper:
         *step_num* can be positive and negative: negative values make the engine turn in the opposite direction;
         *speed* must be positive, and should respect the hardware limitations"""
 
+        # Initialization
+        self.actual_num_step = 0
+        start_time = time.time()
+        differ_time = 0
+
         # Verify parameters' validity
         if step_num is None:
             return "Invalid input. You should choose a value for *step_num*"
