@@ -22,6 +22,8 @@ class Controller(object):
 
         self.parameters = None
         self.engine_pointer = None
+        self.potentiometer_pos = None
+
 
     # Conditions
 
@@ -91,12 +93,14 @@ def writer(count, queue):
 if __name__ == '__main__':
     engine_q, api_q, potentiometer_q = Queue()
 
-    engine = Stepper(0, 1, 2, 3)
-    controller = Controller()
-    controller.engine_pointer = engine
-
     api_reader_p = Process(target=api_reader, args=(api_q, controller,))
     potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
 
+    engine = Stepper(0, 1, 2, 3)
+    controller = Controller()
+    controller.engine_pointer = engine
+    controller.potentiometer_pos = potentiometer_q
+
     while True:
-        api_reader()
+        api_reader_p.start()
+        potentiometer_reader_p.start()
