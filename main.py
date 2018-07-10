@@ -21,6 +21,8 @@ class Controller(object):
         ]
 
         self.parameters = None
+        self.prev_position = None
+
         self.engine_pointer = None
         self.potentiometer_pos = None
 
@@ -40,6 +42,10 @@ class Controller(object):
 
     # Actions
 
+    def setup_environment(self):
+        self.prev_position = self.potentiometer_pos.get()
+        ....
+
     def engine_move(self):
         """Send the command to the engine"""
         angle = self.parameters
@@ -52,6 +58,18 @@ class Controller(object):
             self.to_STILL()
         else:
             self.to_ERROR()
+
+    def check_position(self):
+        """Check if everything went well"""
+        position = self.potentiometer_pos.get()
+        turn_angle = self.parameters
+        wanted = self.prev_position + turn_angle
+
+        if position != wanted:
+            raise EnvironmentError("position was not matched")
+
+
+
 
 
 def api_reader(queue, controller):
