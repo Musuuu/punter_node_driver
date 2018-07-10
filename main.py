@@ -1,5 +1,5 @@
-from multiprocessing import Process
-from queue import Queue
+from multiprocessing import Process, Queue
+# from queue import Queue
 import time
 from transitions import *
 from stepmotor.py import Stepper
@@ -13,6 +13,7 @@ class Controller(object):
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING",
              "conditions": "correct_inputs", "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs"},
+            {"trigger": "api_stop", "source": "MOVING", "dest": "STILL", "after": "engine_stop"},
             {"trigger": "reached_destination", "source": "MOVING", "dest": "STILL", "after": "check_position"},
             {"trigger": "fail", "source": "MOVING", "dest": "ERROR"},
             {"trigger": "error_solved", "source": "ERROR", "dest": "STILL"},
@@ -22,13 +23,7 @@ class Controller(object):
         self.parameters = None
         self.engine_pointer = None
 
-    def config(self):
-        """Initialise the environment"""
-        return True
-
-    def api_move(self):
-        """Receive a movement command from the API"""
-        return True
+    # Conditions
 
     def correct_inputs(self):
         """Check the inputs for the engine movement"""
@@ -40,6 +35,8 @@ class Controller(object):
 
         self.parameters = angle
         return True
+
+    # Actions
 
     def engine_move(self):
         """Send the command to the engine"""
@@ -57,22 +54,24 @@ class Controller(object):
 
 def api_reader(queue, controller):
     """Read from the api queue"""
-    while True:
-        # Read the message
-        msg = queue.get()
+    # Read the message
+    msg = queue.get()
 
-        # Unpack the message
-        command = msg[0]
-        parameters = msg[1]
-        if command == "move":
-            angle = parameters
-            controller.parameters = angle
-            controller.api_move()
-            break
+    # Unpack the message
+    command = msg[0].upper()
+    parameters = msg[1]
+
+    if command == "MOVE":
+        angle = parameters
+        controller.parameters = angle
+        controller.api_move()
+
+    elif command == "STOP":
+        controller.api_stop()
 
 
-def engine_reader(queue):
-    """Read from the engine queue"""
+def set_engine(queue):
+    """Give commands to the engine queue"""
 
 
 def writer(count, queue):
@@ -83,13 +82,18 @@ def writer(count, queue):
 
 
 if __name__ == '__main__':
-    engine_queue = Queue()
+    engine_q = Queue()
     engine = Stepper(0, 1, 2, 3)
 
     controller = Controller()
     controller.engine_pointer = engine
 
-    reader_p = Process(target=reader, args=((engine_queue),))
+    api_q = Queue()
+
+    api_reader_p = Process(target=api_reader, args=(api_q, controller,))
+
+    while True:
+        api_reader()
 #     for count in [10**4, 10**5, 10**6]:
 #         queue = Queue()   # reader() reads from queue
 #                           # writer() writes to queue
