@@ -9,7 +9,7 @@ class Controller(object):
     def __init__(self):
         self.states = ["INIT", "STILL", "ERROR", "MOVING"]
         self.transitions = [
-            {"trigger": "config", "source": "INIT", "dest": "STILL"},
+            {"trigger": "config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING",
              "conditions": "correct_inputs", "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs"},
