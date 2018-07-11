@@ -73,21 +73,7 @@ class Controller(object):
 
 
 def api_reader(queue, controller):
-    """Read from the api queue"""
-    # Read the message
-    msg = queue.get()
-
-    # Unpack the message
-    command = msg[0].upper()
-    parameters = msg[1]
-
-    if command == "MOVE":
-        angle = parameters
-        controller.parameters = angle
-        controller.api_move()
-
-    elif command == "STOP":
-        controller.api_stop()
+    """..."""
 
 
 def potentiometer_reader(queue):
@@ -117,8 +103,23 @@ if __name__ == '__main__':
     engine = Stepper(0, 1, 2, 3)
     controller = Controller()
     controller.engine_pointer = engine
-    controller.potentiometer_pos = potentiometer_q
+    controller.potentiometer_pos = potentiometer_q.get()
+
+    api_reader_p.start()
+    potentiometer_reader_p.start()
 
     while True:
-        api_reader_p.start()
-        potentiometer_reader_p.start()
+        # Read the message
+        msg = api_q.get()
+
+        # Unpack the message
+        command = msg[0].upper()
+        parameters = msg[1]
+
+        if command == "MOVE":
+            angle = parameters
+            controller.parameters = angle
+            controller.api_move()
+
+        elif command == "STOP":
+            controller.api_stop()
