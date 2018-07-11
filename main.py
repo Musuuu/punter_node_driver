@@ -24,7 +24,7 @@ class Controller(object):
         self.prev_position = None
 
         self.engine_pointer = None
-        self.potentiometer_pos = None
+        self.potentiometer_queue = None
 
 
     # Conditions
@@ -43,7 +43,7 @@ class Controller(object):
     # Actions
 
     def setup_environment(self):
-        self.prev_position = self.potentiometer_pos.get()
+        self.prev_position = self.potentiometer_queue.get()
         ....
 
     def engine_move(self):
@@ -55,13 +55,13 @@ class Controller(object):
         motor.move(angle)
 
         if error is None:
-            self.to_STILL()
+            self.reached_destination()
         else:
-            self.to_ERROR()
+            self.fail()
 
     def check_position(self):
         """Check if everything went well"""
-        position = self.potentiometer_pos.get()
+        position = self.potentiometer_queue.get()
         turn_angle = self.parameters
         wanted = self.prev_position + turn_angle
 
@@ -100,13 +100,13 @@ if __name__ == '__main__':
     api_reader_p = Process(target=api_reader, args=(api_q, controller,))
     potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
 
+    api_reader_p.start()
+    potentiometer_reader_p.start()
+
     engine = Stepper(0, 1, 2, 3)
     controller = Controller()
     controller.engine_pointer = engine
-    controller.potentiometer_pos = potentiometer_q.get()
-
-    api_reader_p.start()
-    potentiometer_reader_p.start()
+    controller.potentiometer_queue = potentiometer_q
 
     while True:
         # Read the message
