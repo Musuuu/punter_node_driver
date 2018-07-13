@@ -42,7 +42,7 @@ class Controller(object):
     # Actions
 
     def setup_environment(self):
-        self.prev_position = self.potentiometer_queue.get()
+        self.prev_position = potentiometer_queue.get()
         ....
 
     def engine_move(self):
@@ -60,7 +60,7 @@ class Controller(object):
 
     def check_position(self):
         """Check if everything went well"""
-        position = self.potentiometer_queue.get()
+        position = potentiometer_queue.get()
         turn_angle = self.parameters
         wanted = self.prev_position + turn_angle
 
