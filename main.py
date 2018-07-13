@@ -68,6 +68,10 @@ class Controller(object):
             self.error = "Position did not be matched"
             self.fail()
 
+    @staticmethod
+    def engine_stop(self):
+        """Set the engine OFF"""
+        engine_q.push("still", )
 
 
 def api_reader(queue, controller):
