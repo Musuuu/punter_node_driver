@@ -14,7 +14,8 @@ class Controller(object):
              "conditions": "correct_inputs", "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs"},
             {"trigger": "api_stop", "source": "MOVING", "dest": "STILL", "after": "engine_stop"},
-            {"trigger": "reached_destination", "source": "MOVING", "dest": "STILL", "after": "check_position"},
+            {"trigger": "reached_destination", "source": "MOVING", "dest": "STILL", "before": "check_position",
+             "after": "engine_stop"},
             {"trigger": "fail", "source": "MOVING", "dest": "ERROR"},
             {"trigger": "error_solved", "source": "ERROR", "dest": "STILL"},
             {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": "reconfig"}
