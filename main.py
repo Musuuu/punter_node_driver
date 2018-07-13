@@ -51,7 +51,7 @@ class Controller(object):
         error = None
 
         # motor.move(angle)
-        engine_q.put(["MOVE", angle])
+        engine_q.put(["move", angle])
 
         if error is None:
             self.reached_destination()
@@ -87,13 +87,6 @@ def potentiometer_reader(queue):
 
 def engine_driver(queue):
     """Give commands to the engine queue"""
-
-
-def writer(count, queue):
-    ## Write to the queue
-    for ii in xrange(0, count):
-        queue.put(ii)             # Write 'count' numbers into the queue
-    queue.put('DONE')
 
 
 if __name__ == '__main__':
