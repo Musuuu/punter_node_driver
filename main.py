@@ -83,7 +83,7 @@ def potentiometer_reader(queue):
 
     return position
 
-def set_engine(queue):
+def engine_driver(queue):
     """Give commands to the engine queue"""
 
 
@@ -99,6 +99,7 @@ if __name__ == '__main__':
 
     api_reader_p = Process(target=api_reader, args=(api_q, controller,))
     potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
+    engine_driver_p = Process(target=engine_driver, args=(engine_q,))
 
     api_reader_p.start()
     potentiometer_reader_p.start()
