@@ -23,9 +23,7 @@ class Controller(object):
 
         self.parameters = None
         self.prev_position = None
-
-        self.engine_pointer = None
-        self.potentiometer_queue = None
+        self.error = None
 
 
     # Conditions
