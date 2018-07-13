@@ -65,9 +65,8 @@ class Controller(object):
         wanted = self.prev_position + turn_angle
 
         if position != wanted:
-            raise EnvironmentError("position was not matched")
-
-
+            self.error = "Position did not be matched"
+            self.fail()
 
 
 
