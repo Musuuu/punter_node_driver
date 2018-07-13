@@ -48,10 +48,10 @@ class Controller(object):
     def engine_move(self):
         """Send the command to the engine"""
         angle = self.parameters
-        motor = self.engine_pointer
         error = None
 
-        motor.move(angle)
+        # motor.move(angle)
+        engine_q.put(["MOVE", angle])
 
         if error is None:
             self.reached_destination()
@@ -111,15 +111,24 @@ if __name__ == '__main__':
     while True:
         # Read the message
         msg = api_q.get()
+        engine_status = engine_q.get()[0]               # from Engine
 
         # Unpack the message
         command = msg[0].upper()
         parameters = msg[1]
 
         if command == "MOVE":
-            angle = parameters
-            controller.parameters = angle
-            controller.api_move()
+            if engine_status == "still":
+                angle = parameters
+                controller.parameters = angle
+                controller.api_move()
+            else:
+                error = "Engine busy"
 
         elif command == "STOP":
             controller.api_stop()
+
+        if error:
+            print(error)
+
+
