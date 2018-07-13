@@ -97,22 +97,23 @@ def writer(count, queue):
 
 
 if __name__ == '__main__':
-    engine_q, api_q, potentiometer_q = Queue()
+    engine = Stepper(0, 1, 2, 3)
+    controller = Controller()
+    controller.engine_pointer = engine
+    controller.potentiometer_queue = potentiometer_q
 
+    engine_q, api_q, potentiometer_q = Queue()
     api_reader_p = Process(target=api_reader, args=(api_q, controller,))
     potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
     engine_driver_p = Process(target=engine_driver, args=(engine_q,))
 
     api_reader_p.start()
     potentiometer_reader_p.start()
-
-    engine = Stepper(0, 1, 2, 3)
-    controller = Controller()
-    controller.engine_pointer = engine
-    controller.potentiometer_queue = potentiometer_q
+    engine_driver_p.start()
 
     while True:
-        # Read the message
+        # Read new messages
+        error = None                                    # from API
         msg = api_q.get()
         engine_status = engine_q.get()[0]               # from Engine
 
