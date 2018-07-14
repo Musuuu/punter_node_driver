@@ -78,6 +78,15 @@ class Stepper:
             self.stepper_acceleration_is_correct = True
             self.stepper_total_step_number_is_correct = False
 
+    def _convert_angle_to_steps(self, angle):
+        """Receive an angle and return a number of steps"""
+        tau = self.reducer_index
+        r = self.engine_step_per_revolution
+
+        steps = int(round(angle / 360 * r * tau))
+
+        return steps
+
     def _init_par(self):
         """Initialize parameters"""
         self.old_speed = self.actual_speed
