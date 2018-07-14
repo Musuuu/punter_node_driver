@@ -225,7 +225,7 @@ class Stepper:
             self.old_num_step = self.actual_num_step
             self.old_speed = self.actual_speed
 
-    def move(self, step_num, speed):
+    def move(self, step_num, speed=200):
         """Manages the acceleration, constant movement and deceleration of the stepper.
 
         *step_num* can be positive and negative: negative values make the engine turn in the opposite direction;
