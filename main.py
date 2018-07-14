@@ -2,7 +2,7 @@ from multiprocessing import Process, Queue
 # from queue import Queue
 import time
 from transitions import *
-from stepmotor.py import Stepper
+from stepmotor.py import Stepper, engine_main
 
 
 class Controller(object):
@@ -50,8 +50,9 @@ class Controller(object):
         angle = self.parameters
         error = None
 
-        # motor.move(angle)
         engine_q.put(["move", angle])
+
+        # ... control errors in some way
 
         if error is None:
             self.reached_destination()
@@ -85,32 +86,26 @@ def potentiometer_reader(queue):
 
     return position
 
-def engine_driver(queue):
-    """Give commands to the engine queue"""
-
 
 if __name__ == '__main__':
-    engine = Stepper(0, 1, 2, 3)
     controller = Controller()
-    controller.engine_pointer = engine
-    controller.potentiometer_queue = potentiometer_q
 
     engine_q, api_q, potentiometer_q = Queue()
     api_reader_p = Process(target=api_reader, args=(api_q, controller,))
     potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
-    engine_driver_p = Process(target=engine_driver, args=(engine_q,))
+    engine_p = Process(target=engine_main, args=(engine_q,))
 
     api_reader_p.start()
     potentiometer_reader_p.start()
-    engine_driver_p.start()
+    engine_p.start()
 
     while True:
         # Read new messages
-        error = None                                    # from API
-        msg = api_q.get()
+        error = None
+        msg = api_q.get()                               # from API
         engine_status = engine_q.get()[0]               # from Engine
 
-        # Unpack the message
+        # Unpack the API message
         command = msg[0].upper()
         parameters = msg[1]
 
@@ -119,8 +114,12 @@ if __name__ == '__main__':
                 angle = parameters
                 controller.parameters = angle
                 controller.api_move()
-            else:
+            elif engine_status == "init":
+                error = "Engine not ready, try again"
+            elif engine_status == "moving":
                 error = "Engine busy"
+            else:
+                error = "Unknown engine status"
 
         elif command == "STOP":
             controller.api_stop()
