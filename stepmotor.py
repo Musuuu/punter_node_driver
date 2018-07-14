@@ -385,3 +385,18 @@ class Stepper:
 #     motor1.move(2000, int(4096/2), -1)
 #     motor1.stop()
 #     time.sleep(2)
+
+def engine_main(queue):
+    queue.put(["init", ])
+    engine = Stepper(7, 0, 2, 3)
+    queue.put(["still", ])
+
+    while True:
+        command = queue[0]
+
+        if command == "move":
+            angle = queue[1]
+
+            queue = (["moving", ])
+            engine.move(angle)
+            queue = (["still", ])
