@@ -13,7 +13,7 @@ class Controller(object):
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING",
              "conditions": "correct_inputs", "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs"},
-            {"trigger": "api_stop", "source": "MOVING", "dest": "STILL", "after": "engine_stop"},
+            # {"trigger": "api_stop", "source": "MOVING", "dest": "STILL", "after": "engine_stop"},
             {"trigger": "reached_destination", "source": "MOVING", "dest": "STILL", "before": "check_position",
              "after": "engine_stop"},
             {"trigger": "fail", "source": "MOVING", "dest": "ERROR"},
@@ -69,10 +69,10 @@ class Controller(object):
             self.error = "Position were not matched"
             self.fail()
 
-    @staticmethod
-    def engine_stop(self):
-        """Set the engine OFF"""
-        engine_q.push("still", )
+    # @staticmethod
+    # def engine_stop(self):
+    #     """Set the engine OFF"""
+    #     engine_q.push("still", )
 
 
 def api_reader(queue, controller):
@@ -121,8 +121,8 @@ if __name__ == '__main__':
             else:
                 error = "Unknown engine status"
 
-        elif command == "STOP":
-            controller.api_stop()
+        # elif command == "STOP":                   CAN'T WORK!!  because api_stop trigger entine _stop that write "stop" in the engine queue,
+        #     controller.api_stop()                     but the engine couldn't read the queue until it finishes the movement! It keep going!
 
         if error:
             print(error)
