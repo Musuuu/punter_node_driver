@@ -386,17 +386,29 @@ class Stepper:
 #     motor1.stop()
 #     time.sleep(2)
 
-def engine_main(queue):
-    queue.put(["init", ])
+def engine_main(queue, engine_status):
+    engine_status.value = "init"
     engine = Stepper(7, 0, 2, 3)
-    queue.put(["still", ])
+    engine_status.value = "still"
 
     while True:
-        command = queue[0]
+        msg = None
+        command = None
+        parameter = None
 
-        if command == "move":
-            angle = queue[1]
+        try:
+            msg = queue.get(block=False)
+        except Empty:
+            pass
 
-            queue = (["moving", ])
-            engine.move(angle)
-            queue = (["still", ])
+        if msg:
+            command = msg["command"]
+            parameter = mgs["parameter"]
+
+            if command == "move":
+                angle = paramter
+
+                engine_status.value = "moving"
+                engine.move(angle)
+                queue.put({"status": "reached_dest"})
+                engine_status.value = "still"

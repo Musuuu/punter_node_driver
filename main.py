@@ -1,4 +1,5 @@
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Value
+from multiprocessing.Queue import Empty
 # from queue import Queue
 import time
 from transitions import *
@@ -9,15 +10,13 @@ class Controller(object):
     def __init__(self):
         self.states = ["INIT", "STILL", "ERROR", "MOVING"]
         self.transitions = [
-            {"trigger": "config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
+            {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING",
              "conditions": "correct_inputs", "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs"},
-            # {"trigger": "api_stop", "source": "MOVING", "dest": "STILL", "after": "engine_stop"},
-            {"trigger": "reached_destination", "source": "MOVING", "dest": "STILL", "before": "check_position",
-             "after": "engine_stop"},
-            {"trigger": "fail", "source": "MOVING", "dest": "ERROR"},
-            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL"},
+            {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL", "before": "pot_check_position"},
+            {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR"},
+            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "pot_check_position"},
             {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": "reconfig"}
         ]
 
@@ -50,16 +49,15 @@ class Controller(object):
         angle = self.parameters
         error = None
 
-        engine_q.put(["move", angle])
-
-        # ... control errors in some way
-
-        if error is None:
-            self.reached_destination()
+        if engine_status.value == "still":
+            engine_q.put({"command": "move", "parameter": angle})
         else:
-            self.fail()
+            error = "Engine is not ready to move"
 
-    def check_position(self):
+        if error:
+            self.engine_fail()
+
+    def pot_check_position(self):
         """Check if everything went well"""
         position = potentiometer_queue.get()
         turn_angle = self.parameters
@@ -67,12 +65,7 @@ class Controller(object):
 
         if position != wanted:
             self.error = "Position were not matched"
-            self.fail()
-
-    # @staticmethod
-    # def engine_stop(self):
-    #     """Set the engine OFF"""
-    #     engine_q.push("still", )
+            self.engine_fail()
 
 
 def api_reader(queue, controller):
@@ -90,39 +83,54 @@ def potentiometer_reader(queue):
 if __name__ == '__main__':
     controller = Controller()
 
-    engine_q, api_q, potentiometer_q = Queue()
+    engine_q = Queue()
+    api_q = Queue()
+    potentiometer_q = Queue()
+
+    engine_status = Value('u', None)
+
     api_reader_p = Process(target=api_reader, args=(api_q, controller,))
     potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
-    engine_p = Process(target=engine_main, args=(engine_q,))
+    engine_p = Process(target=engine_main, args=(engine_q, engine_status))
 
     api_reader_p.start()
     potentiometer_reader_p.start()
     engine_p.start()
 
+
     while True:
         # Read new messages
         error = None
-        msg = api_q.get()                               # from API
-        engine_status = engine_q.get()[0]               # from Engine
+        api_msg = None
+        engine_msg = None
+
+        try:
+            api_msg = api_q.get(block=False)
+        except Empty:
+            pass
+        try:
+            engine_msg = engine_q.get(block=False)
+        except Empty:
+            pass
+
+        if engine_msg["status"] == "reached_dest":
+            controller.engine_reached_destination()
 
         # Unpack the API message
-        command = msg[0].upper()
-        parameters = msg[1]
+        if api_msg:
+            api_command = api_msg["command"]
+            api_parameter = api_msg["parameter"]
 
-        if command == "MOVE":
-            if engine_status == "still":
-                angle = parameters
-                controller.parameters = angle
-                controller.api_move()
-            elif engine_status == "init":
-                error = "Engine not ready, try again"
-            elif engine_status == "moving":
-                error = "Engine busy"
-            else:
-                error = "Unknown engine status"
-
-        # elif command == "STOP":                   CAN'T WORK!!  because api_stop trigger entine _stop that write "stop" in the engine queue,
-        #     controller.api_stop()                     but the engine couldn't read the queue until it finishes the movement! It keep going!
+            if api_command == "MOVE":
+                if engine_status.value == "still":
+                    controller.parameters = api_parameter
+                    controller.api_move()
+                elif engine_status.value == "init":
+                    error = "Engine not ready, try again"
+                elif engine_status.value == "moving":
+                    error = "Engine busy"
+                else:
+                    error = "Unknown engine status"
 
         if error:
             print(error)
