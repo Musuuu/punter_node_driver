@@ -4,6 +4,7 @@ from multiprocessing.Queue import Empty
 import time
 from transitions import *
 from stepmotor.py import Stepper, engine_main
+import logging
 
 
 class Controller(object):
@@ -11,12 +12,16 @@ class Controller(object):
         self.states = ["INIT", "STILL", "ERROR", "MOVING"]
         self.transitions = [
             {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
-            {"trigger": "api_move", "source": "STILL", "dest": "MOVING",
-             "conditions": "correct_inputs", "after": "engine_move"},
-            {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs"},
-            {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL", "before": "pot_check_position"},
-            {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR"},
-            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "pot_check_position"},
+            {"trigger": "api_ask_position", "source": "STILL", "dest": "STILL", "before": "pot_tell_position"},
+            {"trigger": "api_move", "source": "STILL", "dest": "MOVING", "conditions": "correct_inputs",
+             "after": "engine_move"},
+            {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs",
+             "after": "handle_error"},
+            {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"}
+            {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL",
+             "before": "pot_check_position"},
+            {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR", "after": "handle_error"},
+            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "pot_tell_position"},
             {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": "reconfig"}
         ]
 
@@ -33,6 +38,7 @@ class Controller(object):
         try:
             angle = float(angle)
         except (ValueError, TypeError):
+            self.error = "Incorrect inputs"
             return False
 
         self.parameters = angle
@@ -41,31 +47,67 @@ class Controller(object):
     # Actions
 
     def setup_environment(self):
-        self.prev_position = potentiometer_queue.get()
+        position = potentiometer_queue.get()
+        self.prev_position = position
+        api_q.put({"position": position})
         ....
 
     def engine_move(self):
         """Send the command to the engine"""
         angle = self.parameters
-        error = None
+        error = False
 
         if engine_status.value == "still":
             engine_q.put({"command": "move", "parameter": angle})
         else:
-            error = "Engine is not ready to move"
+            error = True
 
         if error:
+            self.error = "Trying to control the engine when it's busy"
             self.engine_fail()
+
+    @staticmethod
+    def pot_get_position(self):
+        try:
+            position = potentiometer_queue.get(block=False)
+        except Empty:
+            ...
+
+        return position
+
+    def pot_tell_position(self):
+        """Send the current position from the potentiometer to the API"""
+        position = self.pot_get_position()
+        api_q.put({"position": position})
 
     def pot_check_position(self):
         """Check if everything went well"""
-        position = potentiometer_queue.get()
+        position = self.pot_get_position()
         turn_angle = self.parameters
         wanted = self.prev_position + turn_angle
 
         if position != wanted:
-            self.error = "Position were not matched"
+            self.error = "After the movement, the position were not matched"
             self.engine_fail()
+
+    def api_print_error(self, error):
+        """Output the error"""
+        api_q.put({"error": error})
+        self.error_solved()
+
+    def handle_error(self):
+        """Try to solve the problem"""
+        new_error = self.error
+        fixable_errors = ["Incorrect inputs",
+                          "Trying to control the engine when it's busy",
+                          "After the movement, the position were not matched",
+                          "Engine not ready, try again"]
+
+        if new_error in fixable_errors:
+            self.api_print_error(new_error)
+        else:
+            self.error_unsolved()
+
 
 
 def api_reader(queue, controller):
@@ -74,7 +116,7 @@ def api_reader(queue, controller):
 
 def potentiometer_reader(queue):
     """Read the position of the potentiometer"""
-    position = queue.get()
+    position = self.pot_get_position()
     # ......
 
     return position
@@ -126,13 +168,11 @@ if __name__ == '__main__':
                     controller.parameters = api_parameter
                     controller.api_move()
                 elif engine_status.value == "init":
-                    error = "Engine not ready, try again"
+                    controller.error = "Engine not ready, try again"
+                    controller.api_error()
                 elif engine_status.value == "moving":
-                    error = "Engine busy"
+                    controller.error = "Trying to control the engine when it's busy"
+                    controller.api_error()
                 else:
-                    error = "Unknown engine status"
-
-        if error:
-            print(error)
-
-
+                    controller.error = "Unknown engine status"
+                    controller.api_error()
