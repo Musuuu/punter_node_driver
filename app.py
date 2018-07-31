@@ -12,19 +12,13 @@ engines = [
 
 @app.route('/')
 def index():
+    """First page of the project"""
     return "Welcome to the Turnantenna project"
-
-
-@app.route('/api/v1.0/position', methods=['GET'])
-def get_position():
-    engine = engines[0]
-    if len(engine) == 0:
-        abort(404)
-    return jsonify({'position': engine['position']})
 
 
 @app.route('/api/v1.0/create_engine', methods=['POST'])
 def create_engine():
+    """Create a new engine element, if it doesn't already exist"""
     engine = engines[0]
     if len(engine) != 0:
         abort(make_response("Already existent engine. Try to initialize it instead\n", 409))
@@ -38,8 +32,18 @@ def create_engine():
     return jsonify({'engines': engines}), 201
 
 
+@app.route('/api/v1.0/position', methods=['GET'])
+def get_position():
+    """Get the position of the engine"""
+    engine = engines[0]
+    if len(engine) == 0:
+        abort(404)
+    return jsonify({'position': engine['position']})
+
+
 @app.route('/api/v1.0/init', methods=['POST'])
 def init_engine():
+    """Reset all the parameters of the engine"""
     if not request.json or not 'id' in request.json or request.json['id'] != 1:
         abort(400)
 
@@ -57,6 +61,7 @@ def init_engine():
 
 @app.route('/api/v1.0/move', methods=['POST'])
 def move():
+    """Send a move request to the api queue, in order to make the engine move"""
     id = request.json['id']
     angle = request.json['angle']
 
