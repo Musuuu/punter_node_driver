@@ -1,16 +1,12 @@
 from flask import Flask, jsonify, request, abort, make_response
 from multiprocessing import Queue
 api = Flask(__name__)
-
-
-
-
 queue = Queue()
 engines = [
     {
-        'type': 'stepper',
-        'id': '1',
-        'description': 'Horizontal engine',
+        'type': u'stepper',
+        'id': u'1',
+        'description': u'Horizontal engine',
         'position': None,
         'state': u'INIT'
     }
@@ -41,7 +37,7 @@ def init_engine():
     descr = 'Horizontal engine'
 
     engine = {
-        'type': 'stepper',
+        'type': u'stepper',
         'id': request.json['id'],
         'description': descr,
         'position': None,
