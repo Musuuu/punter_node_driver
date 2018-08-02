@@ -22,6 +22,8 @@ def index():
 @api.route('/api/v1.0/position', methods=['GET'])
 def get_position():
     """Get the position of the engine"""
+    if not request.json or not 'id' in request.json or request.json['id'] != '1':
+        abort(400)
     engine = engines[0]
     if len(engine) == 0:
         abort(404)
@@ -34,7 +36,7 @@ def init_engine():
     if not request.json or not 'id' in request.json or request.json['id'] != '1':
         abort(400)
 
-    descr = 'Horizontal engine'
+    descr = u'Horizontal engine'
 
     engine = {
         'type': u'stepper',
@@ -84,7 +86,7 @@ def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
-def api_main(queue):
+def __main__(queue):
     pass
 
 
