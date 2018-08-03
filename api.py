@@ -52,19 +52,20 @@ def init_engine():
 @api.route('/api/v1.0/move', methods=['POST'])
 def move():
     """Send a move request to the api queue, in order to make the engine move"""
+    if not request.json:
+        abort(400)
+
     id = request.json['id']
     angle = request.json['angle']
-
     if id == '1':
         engine = engines[0]
     else:
         abort(404)
-    if len(engine) == 0:
-        abort(404)
-    if not request.json:
-        abort(400)
     if type(angle) is not str:
         abort(400)
+
+    if len(engines[0]) == 0:
+        abort(404)
 
     queue.put(
         {
