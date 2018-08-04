@@ -1,6 +1,7 @@
 from . import api
 import json
 import requests
+from multiprocessing import Queue
 
 
 test_engines = [
@@ -12,6 +13,7 @@ test_engines = [
         "state": u"INIT"
     }
 ]
+queue = Queue()
 
 
 def test_index_page():

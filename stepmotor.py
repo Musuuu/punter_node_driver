@@ -1,10 +1,9 @@
 import wiringpi
 import time
-import threading
 import datetime
 from math import sqrt as sqrt
-from math import ceil
 import logging
+from multiprocessing import Queue, Value
 
 
 class ConfigurationError(Exception):
@@ -376,16 +375,6 @@ class Stepper:
             self.actual_speed = 0
 
 
-# def main():
-# motor1 = Stepper(7, 0, 2, 3)
-# while 0:
-#     motor1.move(2000, int(4096/2), 1)
-#     motor1.stop()
-#     time.sleep(2)
-#     motor1.move(2000, int(4096/2), -1)
-#     motor1.stop()
-#     time.sleep(2)
-
 def engine_main(queue, engine_status):
     engine_status.value = "init"
     engine = Stepper(7, 0, 2, 3)
@@ -401,7 +390,7 @@ def engine_main(queue, engine_status):
         except Empty:
             pass
 
-        if msg:
+        if msg and msg["id"] == "1":
             command = msg["command"]
             parameter = mgs["parameter"]
 
@@ -410,5 +399,10 @@ def engine_main(queue, engine_status):
 
                 engine_status.value = "moving"
                 engine.move(angle)
-                queue.put({"status": "reached_dest"})
+                queue.put(
+                    {
+                        "id": "1",
+                        "status": "reached_dest"
+                    }
+                )
                 engine_status.value = "still"
