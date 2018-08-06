@@ -46,15 +46,15 @@ def test_wrong_init_engine():
 
     # Specify a bad 'id' value
     result = requests.post('http://localhost:5000/api/v1.0/init', json={'id': 'foo'})
-    assert result.status_code == 400
+    assert result.status_code == 404
 
     # Specify a good 'id' value, but it is out of range
     result = requests.post('http://localhost:5000/api/v1.0/init', json={'id': '3'})
-    assert result.status_code == 400
+    assert result.status_code == 404
 
     # Specify a bad 'id' type
     result = requests.post('http://localhost:5000/api/v1.0/init', json={'id': 1})
-    assert result.status_code == 400
+    assert result.status_code == 404
 
 
 def test_check_the_initial_position():
@@ -73,11 +73,11 @@ def test_wrong_check_of_initial_position():
 
     # Specify a bad 'id' value
     result = requests.get('http://localhost:5000/api/v1.0/position', json={'id': 'foo'})
-    assert result.status_code == 400
+    assert result.status_code == 404
 
     # Specify a good 'id' value, but it is out of range
     result = requests.get('http://localhost:5000/api/v1.0/position', json={'id': '3'})
-    assert result.status_code == 400
+    assert result.status_code == 404
     print(api.engines)
 
 
@@ -93,6 +93,10 @@ def test_wrong_move():
     """Test if the 'move' command handles correctly bad requests"""
     # Forget the request json
     result = requests.post('http://localhost:5000/api/v1.0/move')
+    assert result.status_code == 400
+
+    # Specify a request without and id value
+    result = requests.post('http://localhost:5000/api/v1.0/move', json={'angle': '100'})
     assert result.status_code == 400
 
     # Specify a bad id value

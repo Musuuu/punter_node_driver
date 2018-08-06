@@ -25,9 +25,12 @@ def index():
 @api.route('/api/v1.0/position', methods=['GET'])
 def get_position():
     """Get the position of the engine"""
-    if not request.json or not 'id' in request.json or request.json['id'] != '1':
+    if not request.json or not 'id' in request.json:
         abort(400)
+    id = request.json['id']
     engine = engines[0]
+    if id != '1':
+        abort(404)
     if len(engine) == 0:
         abort(404)
 
@@ -38,25 +41,36 @@ def get_position():
             "parameter": None
         }
     )
-    time.sleep(1)                   # waits for the new position - TODO improve
     return jsonify({'position': engine['position']})
 
 
 @api.route('/api/v1.0/init', methods=['POST'])
 def init_engine():
     """Reset all the parameters of the engine"""
-    if not request.json or not 'id' in request.json or request.json['id'] != '1':
+    if not request.json or not 'id' in request.json:
         abort(400)
+    id = request.json['id']
+    if id != '1':
+        abort(404)
 
     descr = u'Horizontal engine'
 
     engine = {
         'type': u'stepper',
-        'id': request.json['id'],
+        'id': id,
         'description': descr,
         'position': None,
         'state': u'INIT'
     }
+
+    queue.put(
+        {
+            'engine_id': id,
+            'command': 'init',
+            'parameter': None
+        }
+    )
+
     engines[0] = engine
     return jsonify({'engines': engines}), 201
 
@@ -64,7 +78,7 @@ def init_engine():
 @api.route('/api/v1.0/move', methods=['POST'])
 def move():
     """Send a move request to the api queue, in order to make the engine move"""
-    if not request.json:
+    if not request.json or not 'id' in request.json:
         abort(400)
 
     id = request.json['id']
