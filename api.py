@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort, make_response
 from multiprocessing import Queue
+from . import potentiometer as pot
 import requests
-import time
 import logging
 api = Flask(__name__)
 queue = Queue()
@@ -34,13 +34,17 @@ def get_position():
     if len(engine) == 0:
         abort(404)
 
-    queue.put(
-        {
-            "id": "1",
-            "command": "get_pos",
-            "parameter": None
-        }
-    )
+    # queue.put(
+    #     {
+    #         "id": "1",
+    #         "command": "get_pos",
+    #         "parameter": None
+    #     }
+    # )
+
+    position = pot.get_position()
+    engines[0]["position"] = position
+
     return jsonify({'position': engine['position']})
 
 
@@ -111,7 +115,7 @@ def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
-def api_reader(queue, controller):
+def api_reader(queue):
     logging.basicConfig(format='%(levelname)s - %(message)s')
     msg = None
     while True:
@@ -125,8 +129,8 @@ def api_reader(queue, controller):
             parameter = msg["parameter"]
             if command == "init":
                 requests.post('http://localhost:5000/api/v1.0/init', json={'id': '1'})
-            if command == "update_pos":
-                engines[0]["position"] = parameter
+            # if command == "update_pos":
+            #     engines[0]["position"] = parameter
             if command == "print_error":
                 logging.ERROR(parameter)
 

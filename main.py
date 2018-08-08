@@ -2,6 +2,7 @@ from multiprocessing import Process, Queue, Value
 from queue import Empty
 from transitions import *
 from .stepmotor import Stepper, engine_main
+import potentiometer as pot
 from .api import api_reader
 
 
@@ -10,19 +11,18 @@ class Controller(object):
         self.states = ["INIT", "STILL", "ERROR", "MOVING"]
         self.transitions = [
             {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
-            {"trigger": "api_get_position", "source": "STILL", "dest": "STILL", "before": "pot_tell_position"},
+            # {"trigger": "api_get_position", "source": "STILL", "dest": "STILL", "before": "tell_position"},
             {"trigger": "api_init", "source": "STILL", "dest": "INIT", "after": "api_config"},
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING", "conditions": "correct_inputs",
              "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs",
              "after": "handle_error"},
             {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"},
-            {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"},
             {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL",
-             "before": "pot_check_position"},
+             "before": "check_position"},
             {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR", "after": "handle_error"},
-            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "pot_tell_position"},
-            {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": "reconfig"}
+            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "tell_position"},
+            {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": ["reconfig", "tell_position"]}
         ]
         self.parameters = None
         self.prev_position = None
@@ -42,13 +42,9 @@ class Controller(object):
     # Actions
 
     def setup_environment(self):
-        try:
-            position = potentiometer_queue.get(block=False)
-        except Empty:
-            self.error = "Potentiometer is not responding"
-            self.pot_error()
+        position = pot.get_position()
         self.prev_position = position
-        self.pot_tell_position()
+        self.tell_position()
 
     def engine_move(self):
         """Send the command to the engine"""
@@ -70,19 +66,20 @@ class Controller(object):
             self.error = "Trying to control the engine when it's busy"
             self.engine_fail()
 
+    # @staticmethod
+    # def get_position(self):
+    #     try:
+    #         position = potentiometer_queue.get(block=False)
+    #     except Empty:
+    #         position = None
+    #         # do something
+    # 
+    #     return position
+
     @staticmethod
-    def pot_get_position(self):
-        try:
-            position = potentiometer_queue.get(block=False)
-        except Empty:
-            position = None
-            # do something
-
-        return position
-
-    def pot_tell_position(self):
+    def tell_position():
         """Send the current position from the potentiometer to the API"""
-        position = self.pot_get_position()
+        position = pot.get_position()
         api_q.put(
             {
                 "id": "1",
@@ -91,13 +88,12 @@ class Controller(object):
             }
         )
 
-    def pot_check_position(self):
+    def check_position(self):
         """Check if everything went well"""
-        position = self.pot_get_position()
+        position = pot.get_position()
         turn_angle = self.parameters
-        wanted = self.prev_position + turn_angle
 
-        if position != wanted:
+        if position != (self.prev_position + turn_angle):
             self.error = "After the movement, the position were not matched"
             self.engine_fail()
 
@@ -125,8 +121,7 @@ class Controller(object):
         else:
             self.error_unsolved()
 
-    @staticmethod
-    def reconfig():
+    def reconfig(self):
         api_q.put(
             {
                 "id": "1",
@@ -134,36 +129,18 @@ class Controller(object):
                 "parameter": None
             }
         )
-
-
-def api_reader(queue, controller):
-    # TODO
-    pass
-
-
-def potentiometer_reader(queue):
-    """Read the position of the potentiometer"""
-    position = self.pot_get_position()
-    # do something
-
-    return position
+        self.tell_position()
 
 
 if __name__ == "__main__":
     controller = Controller()
-
     engine_q = Queue()
     api_q = Queue()
-    potentiometer_q = Queue()
-
     engine_status = Value("u", None)
-
-    api_reader_p = Process(target=api_reader, args=(api_q, controller,))
-    potentiometer_reader_p = Process(target=potentiometer_reader, args=(potentiometer_q,))
+    api_reader_p = Process(target=api_reader, args=(api_q, ))
     engine_p = Process(target=engine_main, args=(engine_q, engine_status))
 
     api_reader_p.start()
-    potentiometer_reader_p.start()
     engine_p.start()
 
     while True:
@@ -190,7 +167,6 @@ if __name__ == "__main__":
             api_command = api_msg["command"]
             api_parameter = api_msg["parameter"]
 
-            # TODO correct the loop. nobody can check the engine status but the MS
             if api_command == "move":
                 if engine_status.value == "still":
                     controller.parameters = api_parameter
@@ -204,8 +180,8 @@ if __name__ == "__main__":
                 else:
                     controller.error = "Unknown engine status"
                     controller.api_error()
-            if api_command == "get_pos":
-                controller.api_get_position()
+            # if api_command == "get_pos":
+            #     controller.tell_position()
             if api_command == "init":
                 controller.api_init()
 
