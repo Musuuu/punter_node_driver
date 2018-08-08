@@ -11,7 +11,6 @@ class Controller(object):
         self.states = ["INIT", "STILL", "ERROR", "MOVING"]
         self.transitions = [
             {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
-            # {"trigger": "api_get_position", "source": "STILL", "dest": "STILL", "before": "tell_position"},
             {"trigger": "api_init", "source": "STILL", "dest": "INIT", "after": "api_config"},
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING", "conditions": "correct_inputs",
              "after": "engine_move"},
@@ -35,7 +34,11 @@ class Controller(object):
         try:
             self.parameters = float(self.parameters)
         except (ValueError, TypeError):
-            self.error = "Incorrect inputs"
+            self.error = {
+                "error_code": "0",
+                "title": "harmless error",
+                "detail": "Incorrect inputs"
+            }
             return False
         return True
 
@@ -44,6 +47,8 @@ class Controller(object):
     def setup_environment(self):
         position = pot.get_position()
         self.prev_position = position
+        self.parameters = None
+        self.error = None
         self.tell_position()
 
     def engine_move(self):
@@ -63,7 +68,11 @@ class Controller(object):
             error = True
 
         if error:
-            self.error = "Trying to control the engine when it's busy"
+            self.error = {
+                "error_code": "0",
+                "title": "harmless error",
+                "detail": "Trying to control the engine when it's busy"
+            }
             self.engine_fail()
 
     # @staticmethod
@@ -94,7 +103,11 @@ class Controller(object):
         turn_angle = self.parameters
 
         if position != (self.prev_position + turn_angle):
-            self.error = "After the movement, the position were not matched"
+            self.error = {
+                "error_code": "0",
+                "title": "harmless error",
+                "detail": "After the movement, the position were not matched"
+            }
             self.engine_fail()
 
     def api_print_error(self, engine_id, engine_error):
@@ -106,18 +119,13 @@ class Controller(object):
                 "parameter": engine_error
             }
         )
-        self.error_solved()
+        self.error = None
 
     def handle_error(self):
         """Try to solve the problem"""
-        new_error = self.error
-        harmless_errors = ["Incorrect inputs",
-                           "Trying to control the engine when it's busy",
-                           "After the movement, the position were not matched",
-                           "Engine not ready, try again"]
-
-        if new_error in harmless_errors:
-            self.api_print_error(engine_id="1", engine_error=new_error)
+        self.api_print_error(engine_id="1", engine_error=self.error)
+        if self.error["error_code"] == "0":
+            self.error_solved()
         else:
             self.error_unsolved()
 
@@ -172,17 +180,27 @@ if __name__ == "__main__":
                     controller.parameters = api_parameter
                     controller.api_move()
                 elif engine_status.value == "init":
-                    controller.error = "Engine not ready, try again"
+                    controller.error = {
+                        "error_code": "0",
+                        "title": "harmless error",
+                        "detail": "Engine not ready, try again"
+                    }
                     controller.api_error()
                 elif engine_status.value == "moving":
-                    controller.error = "Trying to control the engine when it's busy"
+                    controller.error = {
+                        "error_code": "0",
+                        "title": "harmless error",
+                        "detail": "Trying to control the engine when it's busy"
+                    }
                     controller.api_error()
                 else:
-                    controller.error = "Unknown engine status"
+                    controller.error = {
+                        "error_code": "10",
+                        "title": "unknown error",
+                        "detail": "Unknown engine status"
+                    }
                     controller.api_error()
             # if api_command == "get_pos":
             #     controller.tell_position()
             if api_command == "init":
                 controller.api_init()
-
-
