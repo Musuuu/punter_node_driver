@@ -11,11 +11,13 @@ class Controller(object):
         self.transitions = [
             {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
             {"trigger": "api_get_position", "source": "STILL", "dest": "STILL", "before": "pot_tell_position"},
+            {"trigger": "api_init", "source": "STILL", "dest": "INIT", "after": "api_config"},
             {"trigger": "api_move", "source": "STILL", "dest": "MOVING", "conditions": "correct_inputs",
              "after": "engine_move"},
             {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs",
              "after": "handle_error"},
-            {"trigger": ["api_error", "pot_error"], "source": "STILL", "dest": "ERROR", "after": "handle_error"},
+            {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"},
+            {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"},
             {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL",
              "before": "pot_check_position"},
             {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR", "after": "handle_error"},
@@ -204,3 +206,7 @@ if __name__ == "__main__":
                     controller.api_error()
             if api_command == "get_pos":
                 controller.api_get_position()
+            if api_command == "init":
+                controller.api_init()
+
+
