@@ -1,27 +1,38 @@
-from transitions import *
-import potentiometer as pot
+from transitions import Machine
+from .potentiometer import pot_get_position
+
+api_q = None
+engine_q = None
 
 
 class Controller(object):
-    def __init__(self):
-        self.states = ["INIT", "STILL", "ERROR", "MOVING"]
-        self.transitions = [
-            {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
-            {"trigger": "api_init", "source": "STILL", "dest": "INIT", "after": "api_config"},
-            {"trigger": "api_move", "source": "STILL", "dest": "MOVING", "conditions": "correct_inputs",
-             "after": "engine_move"},
-            {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs",
-             "after": "handle_error"},
-            {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"},
-            {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL",
-             "before": "check_position"},
-            {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR", "after": "handle_error"},
-            {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "tell_position"},
-            {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": ["reconfig", "tell_position"]}
-        ]
+    states = ["INIT", "STILL", "ERROR", "MOVING"]
+    transitions = [
+        {"trigger": "api_config", "source": "INIT", "dest": "STILL", "before": "setup_environment"},
+        {"trigger": "api_init", "source": "STILL", "dest": "INIT", "after": "api_config"},
+        {"trigger": "api_move", "source": "STILL", "dest": "MOVING", "conditions": "correct_inputs",
+         "after": "engine_move"},
+        {"trigger": "api_move", "source": "STILL", "dest": "ERROR", "unless": "correct_inputs",
+         "after": "handle_error"},
+        {"trigger": "api_error", "source": "STILL", "dest": "ERROR", "after": "handle_error"},
+        {"trigger": "engine_reached_destination", "source": "MOVING", "dest": "STILL",
+         "before": "check_position"},
+        {"trigger": "engine_fail", "source": "MOVING", "dest": "ERROR", "after": "handle_error"},
+        {"trigger": "error_solved", "source": "ERROR", "dest": "STILL", "after": "tell_position"},
+        {"trigger": "error_unsolved", "source": "ERROR", "dest": "INIT", "after": ["reconfig", "tell_position"]}
+    ]
+
+    def __init__(self, a_q, e_q):
+        global api_q
+        global engine_q
+
+        api_q = a_q
+        engine_q = e_q
+
         self.parameters = None
         self.prev_position = None
         self.error = None
+        self.machine = Machine(model=self, states=Controller.states, transitions=Controller.transitions, initial='INIT')
 
     # Conditions
 
@@ -41,7 +52,7 @@ class Controller(object):
     # Actions
 
     def setup_environment(self):
-        position = pot.get_position()
+        position = pot_get_position()
         self.prev_position = position
         self.parameters = None
         self.error = None
@@ -51,40 +62,18 @@ class Controller(object):
         """Send the command to the engine"""
         angle = self.parameters
         error = False
-
-        if engine_status.value == "still":
-            engine_q.put(
-                {
-                    "id": "1",
-                    "command": "move",
-                    "parameter": angle
-                 }
-            )
-        else:
-            error = True
-
-        if error:
-            self.error = {
-                "error_code": "0",
-                "title": "harmless error",
-                "detail": "Trying to control the engine when it's busy"
+        engine_q.put(
+            {
+                "id": "1",
+                "command": "move",
+                "parameter": angle
             }
-            self.engine_fail()
-
-    # @staticmethod
-    # def get_position(self):
-    #     try:
-    #         position = potentiometer_queue.get(block=False)
-    #     except Empty:
-    #         position = None
-    #         # do something
-    # 
-    #     return position
+        )
 
     @staticmethod
     def tell_position():
         """Send the current position from the potentiometer to the API"""
-        position = pot.get_position()
+        position = pot_get_position()
         api_q.put(
             {
                 "id": "1",
@@ -95,7 +84,7 @@ class Controller(object):
 
     def check_position(self):
         """Check if everything went well"""
-        position = pot.get_position()
+        position = pot_get_position()
         turn_angle = self.parameters
 
         if position != (self.prev_position + turn_angle):

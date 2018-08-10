@@ -3,7 +3,7 @@ import time
 import datetime
 from math import sqrt as sqrt
 import logging
-from multiprocessing import Queue, Value
+from queue import Empty
 
 
 class ConfigurationError(Exception):
@@ -375,29 +375,21 @@ class Stepper:
             self.actual_speed = 0
 
 
-def engine_main(queue, engine_status):
-    engine_status.value = "init"
+def engine_main(queue):
     engine = Stepper(7, 0, 2, 3)
-    engine_status.value = "still"
 
     while True:
-        msg = None
-        command = None
-        parameter = None
-
         try:
             msg = queue.get(block=False)
         except Empty:
-            pass
+            msg = None
 
         if msg and msg["id"] == "1":
             command = msg["command"]
-            parameter = mgs["parameter"]
+            parameter = msg["parameter"]
 
             if command == "move":
-                angle = paramter
-
-                engine_status.value = "moving"
+                angle = parameter
                 engine.move(angle)
                 queue.put(
                     {
@@ -405,4 +397,3 @@ def engine_main(queue, engine_status):
                         "status": "reached_dest"
                     }
                 )
-                engine_status.value = "still"

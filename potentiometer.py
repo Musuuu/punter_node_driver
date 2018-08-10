@@ -1,2 +1,2 @@
-def get_position():
+def pot_get_position():
     pass

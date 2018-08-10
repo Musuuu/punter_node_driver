@@ -1,6 +1,6 @@
 import unittest
 from mock import patch
-from stepmotor import Stepper, ConfigurationError
+from .stepmotor import Stepper, ConfigurationError
 from unittest import skip
 from random import randint
 import time
@@ -233,5 +233,4 @@ if __name__ == '__main__':
         logger.setLevel(logging.INFO)
     else:
         logger.setLevel(logging.ERROR)
-staticmethods
     unittest.main()
