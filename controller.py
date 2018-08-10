@@ -1,9 +1,5 @@
-from multiprocessing import Process, Queue, Value
-from queue import Empty
 from transitions import *
-from .stepmotor import Stepper, engine_main
 import potentiometer as pot
-from .api import api_reader
 
 
 class Controller(object):
@@ -140,67 +136,3 @@ class Controller(object):
         self.tell_position()
 
 
-if __name__ == "__main__":
-    controller = Controller()
-    engine_q = Queue()
-    api_q = Queue()
-    engine_status = Value("u", None)
-    api_reader_p = Process(target=api_reader, args=(api_q, ))
-    engine_p = Process(target=engine_main, args=(engine_q, engine_status))
-
-    api_reader_p.start()
-    engine_p.start()
-
-    while True:
-        # Read new messages
-        error = None
-        api_msg = None
-        engine_msg = None
-
-        try:
-            api_msg = api_q.get(block=False)
-        except Empty:
-            pass
-        try:
-            engine_msg = engine_q.get(block=False)
-        except Empty:
-            pass
-
-        if engine_msg and engine_msg["id"] == "1":
-            if engine_msg["status"] == "reached_dest":
-                controller.engine_reached_destination()
-
-        # Unpack the API message
-        if api_msg and api_msg["id"] == "1":
-            api_command = api_msg["command"]
-            api_parameter = api_msg["parameter"]
-
-            if api_command == "move":
-                if engine_status.value == "still":
-                    controller.parameters = api_parameter
-                    controller.api_move()
-                elif engine_status.value == "init":
-                    controller.error = {
-                        "error_code": "0",
-                        "title": "harmless error",
-                        "detail": "Engine not ready, try again"
-                    }
-                    controller.api_error()
-                elif engine_status.value == "moving":
-                    controller.error = {
-                        "error_code": "0",
-                        "title": "harmless error",
-                        "detail": "Trying to control the engine when it's busy"
-                    }
-                    controller.api_error()
-                else:
-                    controller.error = {
-                        "error_code": "10",
-                        "title": "unknown error",
-                        "detail": "Unknown engine status"
-                    }
-                    controller.api_error()
-            # if api_command == "get_pos":
-            #     controller.tell_position()
-            if api_command == "init":
-                controller.api_init()
