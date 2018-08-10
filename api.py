@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, abort, make_response
 from queue import Empty
-from .potentiometer import *
+from potentiometer import *
 import requests
 import logging
 api = Flask(__name__)
@@ -14,6 +14,7 @@ engines = [
     }
 ]
 
+queue = None
 
 @api.route('/')
 def index():
@@ -122,6 +123,11 @@ def api_reader(queue):
             if command == "print_error":
                 logging.ERROR(parameter)
 
+
+def run(q):
+    global queue
+    queue = q 
+    api.run(debug=True)
 
 if __name__ == '__main__':
     api.run(debug=True)

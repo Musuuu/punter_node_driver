@@ -1,5 +1,5 @@
 from transitions import Machine
-from .potentiometer import pot_get_position
+from potentiometer import pot_get_position
 
 api_q = None
 engine_q = None

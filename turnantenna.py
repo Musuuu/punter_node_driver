@@ -1,8 +1,9 @@
 from multiprocessing import Process, Queue
 from queue import Empty
-from .controller import Controller
-from .stepmotor import engine_main
-from .api import api_reader
+from controller import Controller
+from stepmotor import engine_main
+from api import run
+import time
 
 controller = None
 
@@ -11,7 +12,7 @@ def main():
     global controller
     engine_q = Queue()
     api_q = Queue()
-    api_reader_p = Process(target=api_reader, args=(api_q, ))
+    api_reader_p = Process(target=run, args=(api_q, ))
     engine_p = Process(target=engine_main, args=(engine_q, ))
     controller = Controller(api_q, engine_q)
 
@@ -33,6 +34,7 @@ def main():
             engine_msg = engine_q.get(block=False)
         except Empty:
             pass
+        time.sleep(0.1)
 
         if engine_msg and engine_msg["id"] == "1":
             if engine_msg["status"] == "reached_dest":
@@ -48,3 +50,7 @@ def main():
                 controller.api_move()
             if api_command == "init":
                 controller.api_init()
+
+
+if __name__ == '__main__':
+    main()
