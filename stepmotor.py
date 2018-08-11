@@ -4,6 +4,14 @@ import datetime
 from math import sqrt as sqrt
 import logging
 from queue import Empty
+from mock import patch
+import argparse
+import logging
+
+
+def stub_wiringPiSetup():
+    """Simulates the correct initialization of the board"""
+    return True
 
 
 class ConfigurationError(Exception):
@@ -11,6 +19,7 @@ class ConfigurationError(Exception):
 
 
 class Stepper:
+    @patch('wiringpi.wiringPiSetup', stub_wiringPiSetup)
     def __init__(self, i1, i2, i3, i4, debug=False):
         wiringpi.wiringPiSetup()
         self.inp = [None, None, None, None]
@@ -167,12 +176,14 @@ class Stepper:
             acceleration_steps = int(step_num / 2)
         return acceleration_steps
 
+    @patch('wiringpi.wiringPiSetup', stub_wiringPiSetup)
     def stop(self):
         wiringpi.digitalWrite(self.inp[0], 0)
         wiringpi.digitalWrite(self.inp[2], 0)
         wiringpi.digitalWrite(self.inp[3], 0)
         wiringpi.digitalWrite(self.inp[1], 0)
 
+    @patch('wiringpi.wiringPiSetup', stub_wiringPiSetup)
     def run_one_step(self):
         """Change the power configuration of the pins in order to do one step in a certain direction."""
         self.actual_num_step += 1
@@ -376,24 +387,46 @@ class Stepper:
 
 
 def engine_main(queue):
+    logging.basicConfig(format='%(levelname)s - %(message)s')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Shows more levels of logging messages")
+    args = parser.parse_args()
+    logger = logging.getLogger()
+
+    if args.verbose >= 2:
+        logger.setLevel(logging.DEBUG)
+    elif args.verbose >= 1:
+        logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.ERROR)
+
     engine = Stepper(7, 0, 2, 3)
 
     while True:
         try:
             msg = queue.get(block=False)
+            if msg["dest"] != "engine":
+                queue.put(msg)
+                msg = None
         except Empty:
             msg = None
+        time.sleep(0.1)
 
         if msg and msg["id"] == "1":
             command = msg["command"]
             parameter = msg["parameter"]
+            logging.info("engine received msg: command={},   par={}".format(command, parameter))
 
             if command == "move":
                 angle = parameter
+                logging.info("engine is starting")
                 engine.move(angle)
+                logging.info("engine finished")
                 queue.put(
                     {
                         "id": "1",
+                        "dest": "controller",
                         "status": "reached_dest"
                     }
                 )
+                logging.info("engine wrote in queue")

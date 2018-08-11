@@ -30,7 +30,7 @@ class Controller(object):
         engine_q = e_q
 
         self.parameters = None
-        self.prev_position = None
+        self.prev_position = pot_get_position()
         self.error = None
         self.machine = Machine(model=self, states=Controller.states, transitions=Controller.transitions, initial='INIT')
 
@@ -61,26 +61,27 @@ class Controller(object):
     def engine_move(self):
         """Send the command to the engine"""
         angle = self.parameters
-        error = False
         engine_q.put(
             {
                 "id": "1",
+                "dest": "engine",
                 "command": "move",
                 "parameter": angle
             }
         )
 
-    @staticmethod
-    def tell_position():
+    def tell_position(self):
         """Send the current position from the potentiometer to the API"""
         position = pot_get_position()
         api_q.put(
             {
                 "id": "1",
+                "dest": "api",
                 "command": "update_pos",
                 "parameter": position
             }
         )
+        self.error = None
 
     def check_position(self):
         """Check if everything went well"""
@@ -100,15 +101,23 @@ class Controller(object):
         api_q.put(
             {
                 "id": engine_id,
+                "dest": "api",
                 "command": "print_error",
                 "parameter": engine_error
             }
         )
-        self.error = None
 
     def handle_error(self):
         """Try to solve the problem"""
-        self.api_print_error(engine_id="1", engine_error=self.error)
+        # self.api_print_error(engine_id="1", engine_error=self.error)
+        api_q.put(
+            {
+                "id": "1",
+                "dest": "api",
+                "command": "print_error",
+                "parameter": self.error
+            }
+        )
         if self.error["error_code"] == "0":
             self.error_solved()
         else:
@@ -118,10 +127,8 @@ class Controller(object):
         api_q.put(
             {
                 "id": "1",
+                "dest": "api",
                 "command": "init",
                 "parameter": None
             }
         )
-        self.tell_position()
-
-

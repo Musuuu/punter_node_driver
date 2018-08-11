@@ -1,8 +1,7 @@
-from flask import Flask, jsonify, request, abort, make_response
+from flask import Flask, jsonify, request, abort, make_response, flash
 from queue import Empty
 from potentiometer import *
 import requests
-import logging
 api = Flask(__name__)
 engines = [
     {
@@ -61,7 +60,8 @@ def init_engine():
 
     queue.put(
         {
-            'engine_id': id,
+            'id': id,
+            'dest': 'controller',
             'command': 'init',
             'parameter': None
         }
@@ -90,14 +90,15 @@ def move():
 
     queue.put(
         {
-            'engine_id': id,
+            'id': id,
+            'dest': 'controller',
             'command': 'move',
             'parameter': angle
         }
     )
 
     # just for test TODO remove
-    engine['position'] = angle
+    # engine['position'] = angle
 
     return jsonify({'engines': engines}), 201
 
@@ -109,11 +110,28 @@ def not_found(error):
 
 def api_reader(queue):
     logging.basicConfig(format='%(levelname)s - %(message)s')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Shows more levels of logging messages")
+    args = parser.parse_args()
+    logger = logging.getLogger()
+
+    if args.verbose >= 2:
+        logger.setLevel(logging.DEBUG)
+    elif args.verbose >= 1:
+        logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.ERROR)
+
     while True:
+        logging.info("diocan")
         try:
             msg = queue.get(block=False)
+            if msg["dest"] != "api":
+                queue.put(msg)
+                msg = None
         except Empty:
             msg = None
+        time.sleep(0.1)
 
         if msg and msg["id"] == "1":
             command = msg["command"]
@@ -121,13 +139,15 @@ def api_reader(queue):
             if command == "init":
                 requests.post('http://localhost:5000/api/v1.0/init', json={'id': '1'})
             if command == "print_error":
-                logging.ERROR(parameter)
+                print(parameter)
+                # logging.error(parameter)
 
 
 def run(q):
     global queue
     queue = q 
     api.run(debug=True)
+
 
 if __name__ == '__main__':
     api.run(debug=True)
