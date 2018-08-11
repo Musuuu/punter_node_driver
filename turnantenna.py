@@ -39,7 +39,7 @@ def main():
                 controller.engine_reached_destination()
 
         # Unpack the API message
-        if api_msg and api_msg["id"] == "1":
+        if api_msg and api_msg["engine_id"] == "1":
             api_command = api_msg["command"]
             api_parameter = api_msg["parameter"]
 
