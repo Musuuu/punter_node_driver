@@ -13,16 +13,13 @@ the mantainance could be done from far away.
 To run the test module you need to install the 'wiringpi' library from https://github.com/WiringPi/WiringPi-Python
 
 -----------
-To test the api methods you can follow the instructions below:
+It is possible to test the code launching
 
-First, set the local FLASK_APP variable correctly and launch with:
+~~~
+python3 turnantenna.py
+~~~
 
-~~~~
-export FLASK_APP=api.py
-flask run
-~~~~
-
-Now you can use the api's methods with the following curl commands:
+and test the api's methods with the following curl commands:
 
 * get_position:
   ~~~~
@@ -38,3 +35,11 @@ Now you can use the api's methods with the following curl commands:
   ~~~~
   curl -i -H "Content-Type: application/vnd.api+json" -X POST -d '{"id":"1","angle":"140"}'  http://localhost:5000/api/v1.0/move
   ~~~~
+
+To have more information during the excecution, it is possible to use
+
+~~~
+python3 turnantenna.py -vvv
+~~~
+
+in order to see every change in the states of the States Machine
