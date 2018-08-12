@@ -26,7 +26,7 @@ Now you can use the api's methods with the following curl commands:
 
 * get_position:
   ~~~~
-  curl -i -H "Content-Type: application/vnd.api+json" -X POST -d '{"id":"1"}' http://localhost:5000/api/v1.0/position
+  curl -i -H "Content-Type: application/vnd.api+json" -X GET -d '{"id":"1"}' http://localhost:5000/api/v1.0/position
   ~~~~
 
 * init_engine:
