@@ -123,7 +123,6 @@ def api_reader(queue):
         logger.setLevel(logging.ERROR)
 
     while True:
-        logging.info("diocan")
         try:
             msg = queue.get(block=False)
             if msg["dest"] != "api":
