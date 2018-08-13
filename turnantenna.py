@@ -37,23 +37,20 @@ def main():
 
     while True:
         # Read new messages
-        api_msg = None
-        engine_msg = None
-
         try:
             api_msg = api_q.get(block=False)
             if api_msg["dest"] != "controller":
                 api_q.put(api_msg)
                 api_msg = None
         except Empty:
-            pass
+            api_msg = None
         try:
             engine_msg = engine_q.get(block=False)
             if engine_msg["dest"] != "controller":
                 engine_q.put(engine_msg)
                 engine_msg = None
         except Empty:
-            pass
+            engine_msg = None
         time.sleep(0.1)
 
         if engine_msg or api_msg:

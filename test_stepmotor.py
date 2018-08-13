@@ -1,6 +1,6 @@
 import unittest
 from mock import patch
-from .stepmotor import Stepper, ConfigurationError
+from stepmotor import Stepper, ConfigurationError
 from unittest import skip
 from random import randint
 import time
@@ -172,6 +172,7 @@ class PrimesTestCase (unittest.TestCase):
 
         return [steps, speed, acceleration_factor]
 
+    @skip
     def test_expected_behavior_measuring_time_and_speed(self):
         """Measure the gap between the ideal and the simulated engine"""
         logging.debug("The following 10 tests will be performed with random inputs\n\n")

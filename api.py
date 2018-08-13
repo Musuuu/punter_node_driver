@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, abort, make_response, flash
+from multiprocessing import Queue
 from queue import Empty
 from potentiometer import *
 import requests
@@ -13,7 +14,8 @@ engines = [
     }
 ]
 
-queue = None
+queue = Queue()
+
 
 @api.route('/')
 def index():
@@ -96,9 +98,6 @@ def move():
             'parameter': angle
         }
     )
-
-    # just for test TODO remove
-    # engine['position'] = angle
 
     return jsonify({'engines': engines}), 201
 

@@ -1,8 +1,6 @@
-from . import api
+import api
 import json
 import requests
-from multiprocessing import Queue
-
 
 test_engines = [
     {
@@ -13,7 +11,6 @@ test_engines = [
         "state": u"INIT"
     }
 ]
-queue = Queue()
 
 
 def test_index_page():
@@ -62,7 +59,7 @@ def test_check_the_initial_position():
     # Correct request
     result = requests.get('http://localhost:5000/api/v1.0/position', json={'id': '1'}).text
     json_result = json.loads(result)
-    assert json_result == {'position': None}
+    assert json_result == {'position': 0}
 
 
 def test_wrong_check_of_initial_position():
@@ -86,7 +83,7 @@ def test_move():
     # Correct request
     result = requests.post('http://localhost:5000/api/v1.0/move', json={'id': '1', 'angle': '100'}).text
     json_result = json.loads(result)
-    assert json_result['engines'][0]['position'] == '100'
+    assert json_result['engines'][0]['position'] == 0
 
 
 def test_wrong_move():

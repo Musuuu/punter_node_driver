@@ -10,9 +10,6 @@ This could be critical for nodes in remote location or exposed to harsh conditio
 the mantainance could be done from far away.
 
 -----------
-To run the test module you need to install the 'wiringpi' library from https://github.com/WiringPi/WiringPi-Python
-
------------
 It is possible to test the code launching
 
 ~~~
@@ -33,8 +30,9 @@ and test the api's methods with the following curl commands:
 
 * move:
   ~~~~
-  curl -i -H "Content-Type: application/vnd.api+json" -X POST -d '{"id":"1","angle":"140"}'  http://localhost:5000/api/v1.0/move
+  curl -i -H "Content-Type: application/vnd.api+json" -X POST -d '{"id":"1","angle":"XX"}'  http://localhost:5000/api/v1.0/move
   ~~~~
+  where XX is the value of the angle
 
 To have more information during the excecution, it is possible to use
 
@@ -43,3 +41,33 @@ python3 turnantenna.py -vvv
 ~~~
 
 in order to see every change in the states of the States Machine
+
+test_stepmotor
+--------------
+To run test_stepmotor.py module you need to install the 'wiringpi' library from https://github.com/WiringPi/WiringPi-Python
+and to create the directory
+
+~~~
+\debugfiles
+~~~
+
+Tests start with:
+
+~~~
+python3 test_stepmotor.py
+~~~
+
+test_api
+--------
+Before launching test_api.py, the flask server should be started with:
+
+~~~
+export FLASK_APP=api.py
+flask run
+~~~
+
+differently from stepmotor, to start api tests we'll use pytest:
+
+~~~
+pytest test_api.py
+~~~
